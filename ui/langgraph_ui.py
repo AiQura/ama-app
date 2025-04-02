@@ -135,80 +135,59 @@ class LangGraphUI:
                 st.info("Link service not available.")
 
         # Vector Store Settings
-        with st.expander("Vector Store Settings", expanded=False):
-            build_index = st.button("Build Index from Selected Files & Links")
+        build_index = st.button("Build Index from Selected Files & Links")
 
-            if build_index:
-                if not selected_files and not selected_links:
-                    st.warning(
-                        "Please select at least one file or link to build the index.")
-                else:
-                    with st.spinner("Building vector store from selected resources..."):
-                        try:
-                            retriever = initialize_retriever(
-                                selected_files, selected_links, force_reload=True)
-                            if retriever:
-                                st.success(
-                                    "Vector store initialized successfully!")
-                            else:
-                                st.error(
-                                    "Failed to initialize vector store. Check API keys.")
-                        except Exception as e:
-                            st.error(f"Error initializing vector store: {e}")
+        if build_index:
+            if not selected_files and not selected_links:
+                st.warning(
+                    "Please select at least one file or link to build the index.")
+            else:
+                with st.spinner("Building vector store from selected resources..."):
+                    try:
+                        retriever = initialize_retriever(
+                            selected_files, selected_links, force_reload=True)
+                        if retriever:
+                            st.success(
+                                "Vector store initialized successfully!")
+                        else:
+                            st.error(
+                                "Failed to initialize vector store. Check API keys.")
+                    except Exception as e:
+                        st.error(f"Error initializing vector store: {e}")
 
         # Query input
         st.subheader("Ask a Question")
-        query = st.text_area(
-            "Enter your question about the selected content", height=100)
+        messages = st.container()
 
-        # Submit button
-        if st.button("Run Query with LangGraph"):
-            if query:
-                if not selected_files and not selected_links:
-                    st.warning(
-                        "You haven't selected any files or links. LangGraph will use default sources or web search.")
-
-                with st.spinner("Processing your query with LangGraph..."):
-                    # Run the query through LangGraph, passing selected files and links
-                    result = run_new_query(
-                        query, selected_files, selected_links)
-                    # result = run_query(query, selected_files, selected_links)
-
-                    # Store in history
-                    st.session_state.langgraph_history.append(result)
-
-        # Display current result if available
-        if st.session_state.langgraph_history:
-            latest_result = st.session_state.langgraph_history[-1]
-
-            # Check for errors
-            if latest_result["answer"].startswith("Error:"):
-                st.error(latest_result["answer"])
+        def display_result(item, show_question=True):
+            if show_question:
+                messages.chat_message("user").write(item["question"])
+            if item["answer"].startswith("Error"):
+                messages.chat_message("ai").error(item["answer"])
             else:
-                # Display the answer
-                st.subheader("Answer")
-                st.write(latest_result["answer"])
+                messages.chat_message("ai").write(item["answer"])
+                for event in item["events"]:
+                    messages.chat_message("ai").write(event)
 
-                # Display the reasoning trace
-                st.subheader("Reasoning Process")
-                with st.expander("Show decision steps", expanded=True):
-                    for event in latest_result["events"]:
-                        st.text(event)
+        if prompt := st.chat_input("Ask a Question"):
+            if len(st.session_state.langgraph_history) > 0:
+                for i, item in enumerate(st.session_state.langgraph_history):
+                    display_result(item)
 
-        # Display history
-        if len(st.session_state.langgraph_history) > 1:
-            st.subheader("Query History")
-            for i, item in enumerate(st.session_state.langgraph_history[:-1]):
-                with st.expander(f"Query: {item['question']}", expanded=False):
-                    if item["answer"].startswith("Error:"):
-                        st.error(item["answer"])
-                    else:
-                        st.write("**Answer:**")
-                        st.write(item["answer"])
+            messages.chat_message("user").write(prompt)
+            if not selected_files and not selected_links:
+                messages.chat_message("AI").warning(
+                    "You haven't selected any files or links. LangGraph will use default sources or web search.")
 
-                        st.write("**Reasoning Process:**")
-                        for event in item["events"]:
-                            st.text(event)
+            with st.spinner("Processing your query with LangGraph..."):
+                # Run the query through LangGraph, passing selected files and links
+                result = run_new_query(
+                    prompt, selected_files, selected_links)
+
+                # Store in history
+                st.session_state.langgraph_history.append(result)
+                for i, item in enumerate(st.session_state.langgraph_history):
+                    display_result(item, False)
 
         # Option to clear history
         if st.session_state.langgraph_history and st.button("Clear History"):

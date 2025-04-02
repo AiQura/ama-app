@@ -48,7 +48,8 @@ Please provide your thought process and final answer."""
         model=model,
         messages=messages,
         temperature=0.1,  # Add some creativity while keeping responses focused
-        max_tokens=10000   # Adjust based on your needs
+        # Adjust based on your needs (Max tokens for gtp-3.5 is 4096)
+        max_tokens=10000
     )
     content = response.choices[0].message.content
     return content
@@ -74,17 +75,20 @@ def run_new_query(question: str, files=None, links=None) -> dict:
     Returns:
         dict: The final state with the answer
     """
+    # model = "gpt-3.5-turbo-16k"
+    model = "chatgpt-4o-latest"
 
     try:
         # First iteration
         first_documents = retrieve_documents(question, files, links)
         hypothetical_answer = rag(
-            query=question, retrieved_documents=first_documents)
+            query=question, retrieved_documents=first_documents, model=model)
 
         # Second iteration
         joint_query = f"{question} \n {hypothetical_answer}"
         last_documents = retrieve_documents(joint_query, files, links)
-        final_answer = rag(query=question, retrieved_documents=last_documents)
+        final_answer = rag(
+            query=question, retrieved_documents=last_documents, model=model)
 
         return {
             "question": question,
