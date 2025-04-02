@@ -96,7 +96,8 @@ def _get_retriever_id(files: List[FileModel], links: List[LinkModel]) -> str:
     link_ids = sorted([link.id for link in links]) if links else []
 
     # Generate an ID by joining all file and link IDs
-    retriever_id = "_".join(file_ids + link_ids)
+    # Max is 63 Charected, we add "rag-chroma-" at the start
+    retriever_id = ("_".join(file_ids + link_ids))[:52]
 
     # If no files or links, use "default"
     if not retriever_id:
