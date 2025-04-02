@@ -5,6 +5,7 @@ from typing import List, Optional, Dict, Any
 
 from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter, SentenceTransformersTokenTextSplitter
+from langchain_core.vectorstores.base import VectorStoreRetriever
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import WebBaseLoader, PyPDFLoader, TextLoader, CSVLoader
 from langchain_openai import OpenAIEmbeddings
@@ -230,7 +231,7 @@ def initialize_retriever(files: Optional[List[FileModel]] = None,
 
 
 def get_retriever(files: Optional[List[FileModel]] = None,
-                  links: Optional[List[LinkModel]] = None):
+                  links: Optional[List[LinkModel]] = None) -> VectorStoreRetriever:
     """
     Get or initialize the retriever with specified files and links
 
