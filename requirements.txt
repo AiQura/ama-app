@@ -1,10 +1,9 @@
-streamlit>=1.22.0
+streamlit>=1.44.1
 pandas>=1.5.3
 pytest>=7.3.1
 pytest-mock>=3.10.0
 requests>=2.31.0
 watchdog
-streamlit>=1.22.0
 pandas>=1.5.3
 pytest>=7.3.1
 pytest-mock>=3.10.0

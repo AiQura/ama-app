@@ -6,12 +6,20 @@ from pydantic import BaseModel, Field
 from langgraph_integration.model_config import get_structured_output_model
 
 
+# class RouteQuery(BaseModel):
+#     """Route a user query to the most relevant datasource."""
+
+#     datasource: Literal["vectorstore", "websearch"] = Field(
+#         ...,
+#         description="Given a user question choose to route it to web search or a vectorstore.",
+#     )
+
 class RouteQuery(BaseModel):
     """Route a user query to the most relevant datasource."""
 
-    datasource: Literal["vectorstore", "websearch"] = Field(
+    datasource: Literal["vectorstore"] = Field(
         ...,
-        description="Given a user question choose to route it to web search or a vectorstore.",
+        description="Given a user question choose to go to vectorstore.",
     )
 
 
@@ -28,4 +36,4 @@ route_prompt = ChatPromptTemplate.from_messages(
     ]
 )
 
-question_router = route_prompt | structured_llm_router
+question_router = structured_llm_router

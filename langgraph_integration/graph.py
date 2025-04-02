@@ -16,14 +16,17 @@ memory = MemorySaver()
 # Track all events that happen during execution for display
 trace_events = []
 
+
 def log_event(message):
     """Log an event to the trace events list"""
     trace_events.append(message)
     print(message)
 
+
 def clear_events():
     """Clear all events"""
     trace_events.clear()
+
 
 def get_events():
     """Get all logged events"""
@@ -34,7 +37,8 @@ def decide_to_generate(state):
     log_event("---ASSESS GRADED DOCUMENTS---")
 
     if state["web_search"]:
-        log_event("---DECISION: NOT ALL DOCUMENTS ARE RELEVANT TO QUESTION, INCLUDE WEB SEARCH---")
+        log_event(
+            "---DECISION: NOT ALL DOCUMENTS ARE RELEVANT TO QUESTION, INCLUDE WEB SEARCH---")
         return WEBSEARCH
     else:
         log_event("---DECISION: GENERATE---")
@@ -54,7 +58,8 @@ def grade_generation_grounded_in_documents_and_question(state: GraphState) -> st
     if hallucination_grade := score.binary_score:
         log_event("---DECISION: GENERATION IS GROUNDED IN DOCUMENTS---")
         log_event("---GRADE GENERATION vs QUESTION---")
-        score = answer_grader.invoke({"question": question, "generation": generation})
+        score = answer_grader.invoke(
+            {"question": question, "generation": generation})
         if answer_grade := score.binary_score:
             log_event("---DECISION: GENERATION ADDRESSES QUESTION---")
             return "useful"
@@ -68,14 +73,15 @@ def grade_generation_grounded_in_documents_and_question(state: GraphState) -> st
 
 def route_question(state: GraphState) -> str:
     log_event("---ROUTE QUESTION---")
-    question = state["question"]
-    source: RouteQuery = question_router.invoke({"question": question})
-    if source.datasource == WEBSEARCH:
-        log_event("---ROUTE QUESTION TO WEB SEARCH---")
-        return WEBSEARCH
-    elif source.datasource == "vectorstore":
-        log_event("---ROUTE QUESTION TO RAG---")
-        return RETRIEVE
+    return RETRIEVE
+    # question = state["question"]
+    # source: RouteQuery = question_router.invoke({"question": question})
+    # if source.datasource == WEBSEARCH:
+    #     log_event("---ROUTE QUESTION TO WEB SEARCH---")
+    #     return WEBSEARCH
+    # elif source.datasource == "vectorstore":
+    #     log_event("---ROUTE QUESTION TO RAG---")
+    #     return RETRIEVE
 
 
 def check_api_key():
@@ -86,16 +92,17 @@ def check_api_key():
 # Main workflow graph
 workflow = None
 
+
 def build_graph():
     """
     Build and return the workflow graph
-    
+
     Returns:
         The compiled workflow or None if API key not available
     """
     if not check_api_key():
         return None
-        
+
     try:
         workflow = StateGraph(GraphState)
         workflow.add_node(RETRIEVE, retrieve)
@@ -147,25 +154,25 @@ def get_app():
 def run_query(question: str, files=None, links=None) -> dict:
     """
     Run a query through the LangGraph system
-    
+
     Args:
         question: The user's question
         files: List of file models to include (optional)
         links: List of link models to include (optional)
-        
+
     Returns:
         dict: The final state with the answer
     """
     clear_events()
     app = get_app()
-    
+
     if app is None:
         return {
             "question": question,
             "answer": "Error: OpenAI API key is required to use LangGraph RAG. Please add your API key in the sidebar.",
             "events": ["Error: OpenAI API key is missing"]
         }
-    
+
     try:
         # Initialize inputs with question and selected files/links
         inputs = {
@@ -173,24 +180,24 @@ def run_query(question: str, files=None, links=None) -> dict:
             "files": files or [],
             "links": links or []
         }
-        
+
         # Generate a unique thread ID for this query using a timestamp
         import time
         thread_id = f"thread_{int(time.time())}"
-        
+
         final_output = None
         # Run the graph and collect all outputs
         for output in app.stream(inputs, config={"configurable": {"thread_id": thread_id}}):
             for key, value in output.items():
                 # Keep the final state
                 final_output = value
-        
+
         result = {
             "question": question,
             "answer": final_output["generation"] if final_output and "generation" in final_output else "No answer generated",
             "events": get_events()
         }
-        
+
         return result
     except Exception as e:
         error_message = str(e)
