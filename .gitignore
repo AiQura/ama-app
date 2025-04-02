@@ -1,0 +1,7 @@
+.env
+.chroma/
+config/
+data/
+langenv/
+
+__pycache__/
