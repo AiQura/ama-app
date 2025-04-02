@@ -54,11 +54,11 @@ Please provide your thought process and final answer."""
     return content
 
 
-def retrieve_documents(question: str, files=None, links=None) -> list[str]:
+def retrieve_documents(query: str, files=None, links=None) -> list[str]:
     retriever = get_retriever(files if files is not None else [
     ], links if links is not None else [])
 
-    documents = retriever.invoke(question)
+    documents = retriever.invoke(query)
     return [doc.page_content for doc in documents]
 
 
@@ -76,17 +76,21 @@ def run_new_query(question: str, files=None, links=None) -> dict:
     """
 
     try:
-        # Get retriever based on selected files and links
-        str_documents = retrieve_documents(question, files, links)
+        # First iteration
+        first_documents = retrieve_documents(question, files, links)
+        hypothetical_answer = rag(
+            query=question, retrieved_documents=first_documents)
 
-        # Initialize inputs with question and selected files/links
-        result = {
+        # Second iteration
+        joint_query = f"{question} \n {hypothetical_answer}"
+        last_documents = retrieve_documents(joint_query, files, links)
+        final_answer = rag(query=question, retrieved_documents=last_documents)
+
+        return {
             "question": question,
-            "answer": rag(query=question, retrieved_documents=str_documents),
+            "answer": final_answer,
             "events": []
         }
-
-        return result
     except Exception as e:
         error_message = str(e)
         return {
