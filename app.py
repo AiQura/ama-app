@@ -135,20 +135,18 @@ def main():
         link_ui.render_add_link_section(current_user)
 
     # Tabs for different sections
-    tab1, tab2, tab3, tab4 = st.tabs(
-        ["Ask AI", "Manage Files", "Manage Links", "LangGraph RAG"])
+    queryTab, langgraphTab, sourceManagementTab = st.tabs(
+        ["Ask AI", "LangGraph RAG", "Source Management"])
 
-    with tab1:
+    with queryTab:
         query_ui.render_query_section(current_user)
 
-    with tab2:
-        file_ui.render_file_management(current_user)
-
-    with tab3:
-        link_ui.render_link_management(current_user)
-
-    with tab4:
+    with langgraphTab:
         langgraph_ui.render_langgraph_section(current_user)
+
+    with sourceManagementTab:
+        file_ui.render_file_management(current_user)
+        link_ui.render_link_management(current_user)
 
     # Footer
     st.markdown("---")
