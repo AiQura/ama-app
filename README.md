@@ -26,7 +26,7 @@ Copystreamlit_ai_app/
 ├── services/               # Business logic
 │   ├── __init__.py
 │   ├── ai_service.py       # AI query processing
-│   ├── file_service.py     # File management 
+│   ├── file_service.py     # File management
 │   └── link_service.py     # Link management
 │
 ├── ui/                     # UI components

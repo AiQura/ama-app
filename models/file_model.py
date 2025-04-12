@@ -18,15 +18,15 @@ class FileModel:
     type: str
     uploaded_at: str
     user_id: str  # Added user_id to associate files with users
-    
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'FileModel':
         """
         Create a FileModel instance from a dictionary.
-        
+
         Args:
             data: Dictionary containing file data
-            
+
         Returns:
             FileModel: Instance of FileModel
         """
@@ -39,11 +39,11 @@ class FileModel:
             uploaded_at=data.get('uploaded_at', datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
             user_id=data.get('user_id', '')
         )
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert a FileModel instance to a dictionary.
-        
+
         Returns:
             Dict: Dictionary representation of the FileModel
         """
@@ -56,26 +56,26 @@ class FileModel:
             'uploaded_at': self.uploaded_at,
             'user_id': self.user_id
         }
-    
+
     @property
     def size_in_kb(self) -> float:
         """
         Get the file size in kilobytes.
-        
+
         Returns:
             float: File size in KB
         """
         return self.size / 1024
-    
+
     @property
     def extension(self) -> str:
         """
         Get the file extension.
-        
+
         Returns:
             str: File extension
         """
         return self.name.split('.')[-1] if '.' in self.name else ''
-    
+
     def __str__(self) -> str:
         return f"{self.name} ({self.size_in_kb:.2f} KB, {self.uploaded_at})"

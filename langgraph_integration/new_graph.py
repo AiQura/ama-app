@@ -25,10 +25,10 @@ def rag(query: str, retrieved_documents: list[str], model="chatgpt-4o-latest"):
             8. make the answer as detailed as possible so a non technical person can under stand it but also use technical terms drawen from the manual.
             9. If a part is reuired to fix the problem and you suggest to change it, then provide the part number and for each part, a part number has to be mentioned.
             Format your response as:
-            
+
             Thought Process:
             - [Your step by step reasoning]
-            
+
             Final Answer:
             [Your detailed answer based only on the provided information, along with the part number needed, AND THIS IS A MUST WHATEVER PART MENTIONED NEEDS TO HAVE A PART NUMBER]"""
         },

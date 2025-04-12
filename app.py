@@ -1,6 +1,12 @@
 """
 Main entry point for the Streamlit AMA application.
 """
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+
 from auth.auth_ui import AuthUI
 from auth.auth_service import AuthService
 from ui.langgraph_ui import LangGraphUI
@@ -13,10 +19,7 @@ from services.file_service import FileService
 from config.config import APP_TITLE, APP_ICON, APP_LAYOUT
 import os
 import streamlit as st
-from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
 
 
 def setup_page_config():
@@ -55,7 +58,7 @@ def main():
     auth_ui = AuthUI(auth_service)
     file_ui = FileUI(file_service)
     link_ui = LinkUI(link_service)
-    query_ui = QueryUI(ai_service, file_ui, link_ui)
+    query_ui = QueryUI(ai_service, file_service, link_service)
     langgraph_ui = LangGraphUI(file_service, link_service)
 
     # Check if user is authenticated
@@ -137,7 +140,6 @@ def main():
 
     with tab1:
         query_ui.render_query_section(current_user)
-        query_ui.render_history_section(current_user)
 
     with tab2:
         file_ui.render_file_management(current_user)

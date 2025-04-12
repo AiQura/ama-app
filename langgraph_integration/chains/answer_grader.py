@@ -14,7 +14,7 @@ class GradeAnswer(BaseModel):
 llm = get_structured_output_model()
 structured_llm_grader = llm.with_structured_output(GradeAnswer)
 
-system = """You are a grader assessing whether an answer addresses / resolves a question \n 
+system = """You are a grader assessing whether an answer addresses / resolves a question \n
      Give a binary score 'yes' or 'no'. Yes' means that the answer resolves the question."""
 answer_prompt = ChatPromptTemplate.from_messages(
     [

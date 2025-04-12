@@ -18,7 +18,7 @@ def test_file_model_init():
         type="text/plain",
         uploaded_at="2025-03-17 12:00:00"
     )
-    
+
     # Check attributes
     assert file.id == "test-id"
     assert file.name == "test.txt"
@@ -39,10 +39,10 @@ def test_file_model_from_dict():
         "type": "text/plain",
         "uploaded_at": "2025-03-17 12:00:00"
     }
-    
+
     # Create from dictionary
     file = FileModel.from_dict(data)
-    
+
     # Check attributes
     assert file.id == "test-id"
     assert file.name == "test.txt"
@@ -63,10 +63,10 @@ def test_file_model_to_dict():
         type="text/plain",
         uploaded_at="2025-03-17 12:00:00"
     )
-    
+
     # Convert to dictionary
     data = file.to_dict()
-    
+
     # Check dictionary values
     assert data["id"] == "test-id"
     assert data["name"] == "test.txt"
@@ -87,7 +87,7 @@ def test_file_model_size_in_kb():
         type="text/plain",
         uploaded_at="2025-03-17 12:00:00"
     )
-    
+
     # Check size in KB
     assert file.size_in_kb == 2.0
 
@@ -103,10 +103,10 @@ def test_file_model_extension():
         type="text/plain",
         uploaded_at="2025-03-17 12:00:00"
     )
-    
+
     # Check extension
     assert file.extension == "txt"
-    
+
     # Create a file model without an extension
     file = FileModel(
         id="test-id",
@@ -116,7 +116,7 @@ def test_file_model_extension():
         type="text/plain",
         uploaded_at="2025-03-17 12:00:00"
     )
-    
+
     # Check extension
     assert file.extension == ""
 
@@ -132,6 +132,6 @@ def test_file_model_str():
         type="text/plain",
         uploaded_at="2025-03-17 12:00:00"
     )
-    
+
     # Check string representation
     assert str(file) == "test.txt (1.00 KB, 2025-03-17 12:00:00)"

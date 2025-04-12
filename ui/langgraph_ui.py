@@ -52,15 +52,15 @@ class LangGraphUI:
 
         # Intro text explaining what LangGraph RAG is
         st.markdown("""
-        This is an implementation of an Adaptive RAG system using LangGraph. 
+        This is an implementation of an Adaptive RAG system using LangGraph.
         The system can:
-        
+
         1. Route queries to either vector search or web search
         2. Evaluate the quality of retrieved documents
         3. Generate grounded responses
         4. Check for hallucinations
         5. Ensure the answer addresses the original question
-        
+
         Select which files and links to include in the vector database, or use web search
         for topics outside your documents.
         """)
@@ -169,10 +169,11 @@ class LangGraphUI:
                 for event in item["events"]:
                     messages.chat_message("ai").write(event)
 
+        if len(st.session_state.langgraph_history) > 0:
+            for i, item in enumerate(st.session_state.langgraph_history):
+                display_result(item)
+
         if prompt := st.chat_input("Ask a Question"):
-            if len(st.session_state.langgraph_history) > 0:
-                for i, item in enumerate(st.session_state.langgraph_history):
-                    display_result(item)
 
             messages.chat_message("user").write(prompt)
             if not selected_files and not selected_links:
