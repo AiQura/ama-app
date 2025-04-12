@@ -3,9 +3,9 @@ UI components for AI queries in the Streamlit application.
 """
 import os
 import streamlit as st
-from typing import List, Dict, Any, Optional
+from typing import Optional
 
-from services.ai_service import AIService
+from prompts.ai_query import run_ai_query
 from auth.auth_service import User
 from langgraph_integration.ingestion import initialize_retriever
 from services.file_service import FileService
@@ -17,16 +17,14 @@ class QueryUI:
     UI components for AI queries.
     """
 
-    def __init__(self, ai_service: AIService, file_service: Optional[FileService] = None, link_service: Optional[LinkService] = None):
+    def __init__(self, file_service: Optional[FileService] = None, link_service: Optional[LinkService] = None):
         """
         Initialize the LangGraphUI.
 
         Args:
-            ai_service: AIService instance
             file_service: FileService instance for accessing user files
             link_service: LinkService instance for accessing user links
         """
-        self.ai_service = ai_service
         self.file_service = file_service
         self.link_service = link_service
 
@@ -166,7 +164,7 @@ class QueryUI:
             with st.spinner("Processing your query with LangGraph..."):
                 # Run the query through LangGraph, passing selected files and links
                 # Call the AI service
-                result = self.ai_service.simple_query_ai(
+                result = run_ai_query(
                     query=prompt,
                     files=selected_files,
                     links=selected_links

@@ -2,13 +2,11 @@
 Service for managing link operations in the application.
 """
 import uuid
-import sqlite3
-from typing import Dict, List, Optional
+from typing import List, Optional
 from datetime import datetime
 
 from models.link_model import LinkModel
-from config.config import AUTH_DB_PATH
-from auth.auth_service import User
+from utils.db_conenciton import db_conenciton
 
 
 class LinkService:
@@ -22,23 +20,18 @@ class LinkService:
 
     def _initialize_db(self) -> None:
         """Initialize the database tables for link storage."""
-        conn = sqlite3.connect(AUTH_DB_PATH)
-        cursor = conn.cursor()
-
+        with db_conenciton() as cursor:
         # Create links table
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS links (
-            link_id TEXT PRIMARY KEY,
-            user_id TEXT NOT NULL,
-            url TEXT NOT NULL,
-            description TEXT,
-            added_at TEXT NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES users (user_id)
-        )
-        ''')
-
-        conn.commit()
-        conn.close()
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS links (
+                link_id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                url TEXT NOT NULL,
+                description TEXT,
+                added_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users (user_id)
+            )
+            ''')
 
     def add_link(self, url: str, description: str = "", user_id: str = "") -> Optional[LinkModel]:
         """
@@ -70,20 +63,15 @@ class LinkService:
                 return None
 
             # Add to database
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
-
-            cursor.execute(
-                """
-                INSERT INTO links
-                (link_id, user_id, url, description, added_at)
-                VALUES (?, ?, ?, ?, ?)
-                """,
-                (link_id, user_id, url, description, added_at)
-            )
-
-            conn.commit()
-            conn.close()
+            with db_conenciton() as cursor:
+                cursor.execute(
+                    """
+                    INSERT INTO links
+                    (link_id, user_id, url, description, added_at)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (link_id, user_id, url, description, added_at)
+                )
 
             return link_model
         except Exception as e:
@@ -101,20 +89,16 @@ class LinkService:
             Optional[LinkModel]: The link model or None if not found
         """
         try:
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
-
-            cursor.execute(
-                """
-                SELECT link_id, user_id, url, description, added_at
-                FROM links
-                WHERE link_id = ?
-                """,
-                (link_id,)
-            )
-
-            row = cursor.fetchone()
-            conn.close()
+            with db_conenciton() as cursor:
+                cursor.execute(
+                    """
+                    SELECT link_id, user_id, url, description, added_at
+                    FROM links
+                    WHERE link_id = ?
+                    """,
+                    (link_id,)
+                )
+                row = cursor.fetchone()
 
             if row:
                 link_id, user_id, url, description, added_at = row
@@ -143,21 +127,18 @@ class LinkService:
             List[LinkModel]: List of link models
         """
         try:
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
+            with db_conenciton() as cursor:
+                cursor.execute(
+                    """
+                    SELECT link_id, user_id, url, description, added_at
+                    FROM links
+                    WHERE user_id = ?
+                    ORDER BY added_at DESC
+                    """,
+                    (user_id,)
+                )
 
-            cursor.execute(
-                """
-                SELECT link_id, user_id, url, description, added_at
-                FROM links
-                WHERE user_id = ?
-                ORDER BY added_at DESC
-                """,
-                (user_id,)
-            )
-
-            rows = cursor.fetchall()
-            conn.close()
+                rows = cursor.fetchall()
 
             links = []
             for row in rows:
@@ -184,19 +165,16 @@ class LinkService:
             List[LinkModel]: List of all link models
         """
         try:
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
+            with db_conenciton() as cursor:
+                cursor.execute(
+                    """
+                    SELECT link_id, user_id, url, description, added_at
+                    FROM links
+                    ORDER BY added_at DESC
+                    """
+                )
 
-            cursor.execute(
-                """
-                SELECT link_id, user_id, url, description, added_at
-                FROM links
-                ORDER BY added_at DESC
-                """
-            )
-
-            rows = cursor.fetchall()
-            conn.close()
+                rows = cursor.fetchall()
 
             links = []
             for row in rows:
@@ -226,13 +204,8 @@ class LinkService:
             bool: True if successful, False otherwise
         """
         try:
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
-
-            cursor.execute("DELETE FROM links WHERE link_id = ?", (link_id,))
-
-            conn.commit()
-            conn.close()
+            with db_conenciton() as cursor:
+                cursor.execute("DELETE FROM links WHERE link_id = ?", (link_id,))
 
             return True
         except Exception as e:
@@ -250,13 +223,8 @@ class LinkService:
             bool: True if successful, False otherwise
         """
         try:
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
-
-            cursor.execute("DELETE FROM links WHERE user_id = ?", (user_id,))
-
-            conn.commit()
-            conn.close()
+            with db_conenciton() as cursor:
+                cursor.execute("DELETE FROM links WHERE user_id = ?", (user_id,))
 
             return True
         except Exception as e:
@@ -295,20 +263,15 @@ class LinkService:
                 return None
 
             # Update in database
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
-
-            cursor.execute(
-                """
-                UPDATE links
-                SET url = ?, description = ?
-                WHERE link_id = ?
-                """,
-                (link.url, link.description, link_id)
-            )
-
-            conn.commit()
-            conn.close()
+            with db_conenciton() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE links
+                    SET url = ?, description = ?
+                    WHERE link_id = ?
+                    """,
+                    (link.url, link.description, link_id)
+                )
 
             return link
         except Exception as e:

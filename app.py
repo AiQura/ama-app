@@ -13,7 +13,6 @@ from ui.langgraph_ui import LangGraphUI
 from ui.query_ui import QueryUI
 from ui.link_ui import LinkUI
 from ui.file_ui import FileUI
-from services.ai_service import AIService
 from services.link_service import LinkService
 from services.file_service import FileService
 from config.config import APP_TITLE, APP_ICON, APP_LAYOUT
@@ -52,13 +51,12 @@ def main():
     auth_service = AuthService()
     file_service = FileService()
     link_service = LinkService()
-    ai_service = AIService()
 
     # Initialize UI components
     auth_ui = AuthUI(auth_service)
     file_ui = FileUI(file_service)
     link_ui = LinkUI(link_service)
-    query_ui = QueryUI(ai_service, file_service, link_service)
+    query_ui = QueryUI(file_service, link_service)
     langgraph_ui = LangGraphUI(file_service, link_service)
 
     # Check if user is authenticated

@@ -1,10 +1,4 @@
-import os
-from openai import OpenAI
-from langgraph_integration.ingestion import get_retriever
-
-
-def get_client():
-    return OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+from utils.ai_utils import get_ai_client, retrieve_documents
 
 
 def rag(query: str, retrieved_documents: list[str], model="chatgpt-4o-latest"):
@@ -43,7 +37,7 @@ Please provide your thought process and final answer."""
         }
     ]
 
-    openai_client = get_client()
+    openai_client = get_ai_client()
     response = openai_client.chat.completions.create(
         model=model,
         messages=messages,
@@ -55,15 +49,7 @@ Please provide your thought process and final answer."""
     return content
 
 
-def retrieve_documents(query: str, files=None, links=None) -> list[str]:
-    retriever = get_retriever(files if files is not None else [
-    ], links if links is not None else [])
-
-    documents = retriever.invoke(query)
-    return [doc.page_content for doc in documents]
-
-
-def run_new_query(question: str, files=None, links=None) -> dict:
+def run_rag_query(question: str, files=None, links=None) -> dict:
     """
     Run a query through the LangGraph system
 

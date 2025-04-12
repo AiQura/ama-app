@@ -3,14 +3,13 @@ Service for managing file operations in the application.
 """
 import os
 import uuid
-import sqlite3
-from typing import Dict, List, Optional, BinaryIO, Union
+from typing import List, Optional, BinaryIO, Union
 from datetime import datetime
 
 from models.file_model import FileModel
-from config.config import UPLOAD_DIR, AUTH_DB_PATH
+from config.config import UPLOAD_DIR
+from utils.db_conenciton import db_conenciton
 from utils.storage import delete_file
-from auth.auth_service import User
 
 
 class FileService:
@@ -24,25 +23,20 @@ class FileService:
 
     def _initialize_db(self) -> None:
         """Initialize the database tables for file storage."""
-        conn = sqlite3.connect(AUTH_DB_PATH)
-        cursor = conn.cursor()
-
-        # Create files table
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS files (
-            file_id TEXT PRIMARY KEY,
-            user_id TEXT NOT NULL,
-            name TEXT NOT NULL,
-            path TEXT NOT NULL,
-            size INTEGER NOT NULL,
-            type TEXT,
-            uploaded_at TEXT NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES users (user_id)
-        )
-        ''')
-
-        conn.commit()
-        conn.close()
+        with db_conenciton() as cursor:
+            # Create files table
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS files (
+                file_id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                name TEXT NOT NULL,
+                path TEXT NOT NULL,
+                size INTEGER NOT NULL,
+                type TEXT,
+                uploaded_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users (user_id)
+            )
+            ''')
 
     def add_file(self, file: Union[BinaryIO, bytes, bytearray, memoryview],
                 filename: str, file_type: str = "", user_id: str = "") -> Optional[FileModel]:
@@ -97,23 +91,18 @@ class FileService:
             )
 
             # Save to database
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
-
-            cursor.execute(
-                """
-                INSERT INTO files
-                (file_id, user_id, name, path, size, type, uploaded_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    file_id, user_id, filename, file_path,
-                    file_size, file_type, uploaded_at
+            with db_conenciton() as cursor:
+                cursor.execute(
+                    """
+                    INSERT INTO files
+                    (file_id, user_id, name, path, size, type, uploaded_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        file_id, user_id, filename, file_path,
+                        file_size, file_type, uploaded_at
+                    )
                 )
-            )
-
-            conn.commit()
-            conn.close()
 
             return file_model
         except Exception as e:
@@ -131,20 +120,16 @@ class FileService:
             Optional[FileModel]: The file model or None if not found
         """
         try:
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
-
-            cursor.execute(
-                """
-                SELECT file_id, user_id, name, path, size, type, uploaded_at
-                FROM files
-                WHERE file_id = ?
-                """,
-                (file_id,)
-            )
-
-            row = cursor.fetchone()
-            conn.close()
+            with db_conenciton() as cursor:
+                cursor.execute(
+                    """
+                    SELECT file_id, user_id, name, path, size, type, uploaded_at
+                    FROM files
+                    WHERE file_id = ?
+                    """,
+                    (file_id,)
+                )
+                row = cursor.fetchone()
 
             if row:
                 file_id, user_id, name, path, size, type, uploaded_at = row
@@ -175,21 +160,18 @@ class FileService:
             List[FileModel]: List of file models
         """
         try:
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
+            with db_conenciton() as cursor:
+                cursor.execute(
+                    """
+                    SELECT file_id, user_id, name, path, size, type, uploaded_at
+                    FROM files
+                    WHERE user_id = ?
+                    ORDER BY uploaded_at DESC
+                    """,
+                    (user_id,)
+                )
 
-            cursor.execute(
-                """
-                SELECT file_id, user_id, name, path, size, type, uploaded_at
-                FROM files
-                WHERE user_id = ?
-                ORDER BY uploaded_at DESC
-                """,
-                (user_id,)
-            )
-
-            rows = cursor.fetchall()
-            conn.close()
+                rows = cursor.fetchall()
 
             files = []
             for row in rows:
@@ -223,19 +205,16 @@ class FileService:
             List[FileModel]: List of all file models
         """
         try:
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
+            with db_conenciton() as cursor:
+                cursor.execute(
+                    """
+                    SELECT file_id, user_id, name, path, size, type, uploaded_at
+                    FROM files
+                    ORDER BY uploaded_at DESC
+                    """
+                )
 
-            cursor.execute(
-                """
-                SELECT file_id, user_id, name, path, size, type, uploaded_at
-                FROM files
-                ORDER BY uploaded_at DESC
-                """
-            )
-
-            rows = cursor.fetchall()
-            conn.close()
+                rows = cursor.fetchall()
 
             files = []
             for row in rows:
@@ -284,13 +263,8 @@ class FileService:
                     return False
 
             # Delete from database
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
-
-            cursor.execute("DELETE FROM files WHERE file_id = ?", (file_id,))
-
-            conn.commit()
-            conn.close()
+            with db_conenciton() as cursor:
+                cursor.execute("DELETE FROM files WHERE file_id = ?", (file_id,))
 
             return True
         except Exception as e:
@@ -317,14 +291,8 @@ class FileService:
                     delete_file(file.path)
 
             # Delete from database
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
-
-            cursor.execute("DELETE FROM files WHERE user_id = ?", (user_id,))
-
-            conn.commit()
-            conn.close()
-
+            with db_conenciton() as cursor:
+                cursor.execute("DELETE FROM files WHERE user_id = ?", (user_id,))
             return True
         except Exception as e:
             print(f"Error deleting user files: {e}")

@@ -3,7 +3,7 @@ Utility functions for persistent storage operations.
 """
 import json
 import os
-from typing import Dict, List, Any, Optional
+from typing import Any
 
 
 def save_json(data: Any, file_path: str) -> bool:

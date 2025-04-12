@@ -3,12 +3,10 @@ UI components for LangGraph RAG in the Streamlit application.
 """
 import os
 import streamlit as st
-from typing import Optional, List
+from typing import Optional
 
 from auth.auth_service import User
-from langgraph_integration.new_graph import run_new_query
-from models.file_model import FileModel
-from models.link_model import LinkModel
+from prompts.rag_query import run_rag_query
 from services.file_service import FileService
 from services.link_service import LinkService
 from langgraph_integration.graph import run_query
@@ -182,7 +180,7 @@ class LangGraphUI:
 
             with st.spinner("Processing your query with LangGraph..."):
                 # Run the query through LangGraph, passing selected files and links
-                result = run_new_query(
+                result = run_rag_query(
                     prompt, selected_files, selected_links)
 
                 # Store in history
