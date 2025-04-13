@@ -2,15 +2,15 @@
 Authentication service for the Streamlit AMA.
 """
 import os
-import json
 import hashlib
 import uuid
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, Optional, Any
 from dataclasses import dataclass
 import sqlite3
 from datetime import datetime, timedelta
+import streamlit as st
 
-from config.config import AUTH_DB_PATH, SALT_FILE_PATH, PREDEFINED_USERS
+from utils.db_conenciton import db_conenciton
 
 
 @dataclass
@@ -35,67 +35,46 @@ class AuthService:
     def __init__(self):
         """Initialize the authentication service."""
         self._initialize_db()
-        self._initialize_salt()
         self._initialize_predefined_users()
 
     def _initialize_db(self) -> None:
         """Initialize the SQLite database for authentication."""
-        # Ensure the directory exists
-        os.makedirs(os.path.dirname(AUTH_DB_PATH), exist_ok=True)
-
         # Connect to the database
-        conn = sqlite3.connect(AUTH_DB_PATH)
-        cursor = conn.cursor()
+        with db_conenciton() as cursor:
+            # Create users table
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                user_id TEXT PRIMARY KEY,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                name TEXT,
+                created_at TEXT NOT NULL
+            )
+            ''')
 
-        # Create users table
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            user_id TEXT PRIMARY KEY,
-            email TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            name TEXT,
-            created_at TEXT NOT NULL
-        )
-        ''')
-
-        # Create sessions table
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS sessions (
-            session_id TEXT PRIMARY KEY,
-            user_id TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            expires_at TEXT NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES users (user_id)
-        )
-        ''')
-
-        conn.commit()
-        conn.close()
-
-    def _initialize_salt(self) -> None:
-        """Initialize the salt for password hashing."""
-        if not os.path.exists(SALT_FILE_PATH):
-            # Create a random salt
-            salt = os.urandom(32).hex()
-
-            # Save the salt to a file
-            with open(SALT_FILE_PATH, 'w') as f:
-                f.write(salt)
+            # Create sessions table
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS sessions (
+                session_id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users (user_id)
+            )
+            ''')
 
     def _initialize_predefined_users(self) -> None:
         """Initialize predefined users in the database."""
         # Load predefined users from config
-        for user_data in PREDEFINED_USERS:
+        for user_data in st.secrets.auth["PREDEFINED_USERS"]:
             email = user_data['email']
             password = user_data['password']
             name = user_data.get('name', '')
 
             # Check if user already exists
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
-            cursor.execute("SELECT email FROM users WHERE email = ?", (email,))
-            exists = cursor.fetchone()
-            conn.close()
+            with db_conenciton() as cursor:
+                cursor.execute("SELECT email FROM users WHERE email = ?", (email,))
+                exists = cursor.fetchone()
 
             if not exists:
                 # Add user to database
@@ -103,8 +82,7 @@ class AuthService:
 
     def _get_salt(self) -> str:
         """Get the salt for password hashing."""
-        with open(SALT_FILE_PATH, 'r') as f:
-            return f.read()
+        return os.environ.get('AUTH_SALT', "")
 
     def _hash_password(self, password: str) -> str:
         """
@@ -137,17 +115,12 @@ class AuthService:
             password_hash = self._hash_password(password)
             created_at = datetime.now().isoformat()
 
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
-
-            # Insert user into database
-            cursor.execute(
-                "INSERT INTO users (user_id, email, password_hash, name, created_at) VALUES (?, ?, ?, ?, ?)",
-                (user_id, email, password_hash, name, created_at)
-            )
-
-            conn.commit()
-            conn.close()
+            with db_conenciton() as cursor:
+                # Insert user into database
+                cursor.execute(
+                    "INSERT INTO users (user_id, email, password_hash, name, created_at) VALUES (?, ?, ?, ?, ?)",
+                    (user_id, email, password_hash, name, created_at)
+                )
 
             return User(email=email, user_id=user_id, name=name)
         except sqlite3.IntegrityError:
@@ -171,17 +144,14 @@ class AuthService:
         try:
             password_hash = self._hash_password(password)
 
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
+            with db_conenciton() as cursor:
+                # Find user with matching email and password
+                cursor.execute(
+                    "SELECT user_id, email, name FROM users WHERE email = ? AND password_hash = ?",
+                    (email, password_hash)
+                )
 
-            # Find user with matching email and password
-            cursor.execute(
-                "SELECT user_id, email, name FROM users WHERE email = ? AND password_hash = ?",
-                (email, password_hash)
-            )
-
-            user_data = cursor.fetchone()
-            conn.close()
+                user_data = cursor.fetchone()
 
             if user_data:
                 user_id, email, name = user_data
@@ -207,17 +177,12 @@ class AuthService:
             created_at = datetime.now().isoformat()
             expires_at = (datetime.now() + timedelta(days=7)).isoformat()
 
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
-
-            # Insert session into database
-            cursor.execute(
-                "INSERT INTO sessions (session_id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
-                (session_id, user.user_id, created_at, expires_at)
-            )
-
-            conn.commit()
-            conn.close()
+            with db_conenciton() as cursor:
+                # Insert session into database
+                cursor.execute(
+                    "INSERT INTO sessions (session_id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
+                    (session_id, user.user_id, created_at, expires_at)
+                )
 
             return session_id
         except Exception as e:
@@ -235,22 +200,19 @@ class AuthService:
             Optional[User]: The user associated with the session or None if invalid
         """
         try:
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
+            with db_conenciton() as cursor:
+                # Find session and check if it's expired
+                cursor.execute(
+                    """
+                    SELECT s.user_id, u.email, u.name
+                    FROM sessions s
+                    JOIN users u ON s.user_id = u.user_id
+                    WHERE s.session_id = ? AND s.expires_at > ?
+                    """,
+                    (session_id, datetime.now().isoformat())
+                )
 
-            # Find session and check if it's expired
-            cursor.execute(
-                """
-                SELECT s.user_id, u.email, u.name
-                FROM sessions s
-                JOIN users u ON s.user_id = u.user_id
-                WHERE s.session_id = ? AND s.expires_at > ?
-                """,
-                (session_id, datetime.now().isoformat())
-            )
-
-            session_data = cursor.fetchone()
-            conn.close()
+                session_data = cursor.fetchone()
 
             if session_data:
                 user_id, email, name = session_data
@@ -272,15 +234,10 @@ class AuthService:
             bool: True if successful, False otherwise
         """
         try:
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
-
-            # Delete session from database
-            cursor.execute(
-                "DELETE FROM sessions WHERE session_id = ?", (session_id,))
-
-            conn.commit()
-            conn.close()
+            with db_conenciton() as cursor:
+                # Delete session from database
+                cursor.execute(
+                    "DELETE FROM sessions WHERE session_id = ?", (session_id,))
 
             return True
         except Exception as e:
@@ -298,17 +255,14 @@ class AuthService:
             Optional[User]: The user or None if not found
         """
         try:
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
+            with db_conenciton() as cursor:
+                # Find user by ID
+                cursor.execute(
+                    "SELECT user_id, email, name FROM users WHERE user_id = ?",
+                    (user_id,)
+                )
 
-            # Find user by ID
-            cursor.execute(
-                "SELECT user_id, email, name FROM users WHERE user_id = ?",
-                (user_id,)
-            )
-
-            user_data = cursor.fetchone()
-            conn.close()
+                user_data = cursor.fetchone()
 
             if user_data:
                 user_id, email, name = user_data
@@ -330,17 +284,14 @@ class AuthService:
             Optional[User]: The user or None if not found
         """
         try:
-            conn = sqlite3.connect(AUTH_DB_PATH)
-            cursor = conn.cursor()
+            with db_conenciton() as cursor:
+                # Find user by email
+                cursor.execute(
+                    "SELECT user_id, email, name FROM users WHERE email = ?",
+                    (email,)
+                )
 
-            # Find user by email
-            cursor.execute(
-                "SELECT user_id, email, name FROM users WHERE email = ?",
-                (email,)
-            )
-
-            user_data = cursor.fetchone()
-            conn.close()
+                user_data = cursor.fetchone()
 
             if user_data:
                 user_id, email, name = user_data

@@ -1,7 +1,10 @@
 .env
 .chroma/
-config/
-data/
+data/*
 langenv/
 
+.streamlit/secrets.toml
+
 __pycache__/
+
+!.keep

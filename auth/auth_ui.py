@@ -2,10 +2,12 @@
 UI components for authentication in the Streamlit application.
 """
 import streamlit as st
-from typing import Optional, Dict, Any, List, Tuple
+from typing import Optional
 
 from auth.auth_service import AuthService, User
-from config.config import SESSION_STATE_KEY, SESSION_ID_KEY
+
+SESSION_STATE_KEY = "authenticated_user"
+SESSION_ID_KEY = "session_id"
 
 
 class AuthUI:

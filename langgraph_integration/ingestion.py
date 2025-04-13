@@ -1,7 +1,6 @@
 import os
 import streamlit as st
-import tempfile
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Any
 
 from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter, SentenceTransformersTokenTextSplitter
@@ -13,8 +12,6 @@ from models.file_model import FileModel
 from models.link_model import LinkModel
 
 # Check for environment variables
-
-
 def check_api_key():
     """Check if OpenAI API key is available"""
     return "OPENAI_API_KEY" in os.environ

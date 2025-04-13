@@ -1,12 +1,6 @@
 """
 Main entry point for the Streamlit AMA application.
 """
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
-
-
 from auth.auth_ui import AuthUI
 from auth.auth_service import AuthService
 from ui.langgraph_ui import LangGraphUI

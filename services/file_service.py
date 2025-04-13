@@ -11,7 +11,6 @@ from config.config import UPLOAD_DIR
 from utils.db_conenciton import db_conenciton
 from utils.storage import delete_file
 
-
 class FileService:
     """
     Service for managing file operations.
@@ -19,6 +18,9 @@ class FileService:
 
     def __init__(self):
         """Initialize the FileService."""
+        # Create necessary directories
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
+
         self._initialize_db()
 
     def _initialize_db(self) -> None:
