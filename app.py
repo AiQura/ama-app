@@ -3,6 +3,8 @@ Main entry point for the Streamlit AMA application.
 """
 from modules.auth.auth_ui import AuthUI
 from modules.auth.auth_service import AuthService
+from modules.feedback.feedback_service import FeedbackService
+from modules.feedback.feedback_ui import FeedbackUI
 from ui.langgraph_ui import LangGraphUI
 from ui.query_ui import QueryUI
 from modules.link.link_ui import LinkUI
@@ -45,11 +47,13 @@ def main():
     auth_service = AuthService()
     file_service = FileService()
     link_service = LinkService()
+    feedback_service = FeedbackService()
 
     # Initialize UI components
     auth_ui = AuthUI(auth_service)
     file_ui = FileUI(file_service)
     link_ui = LinkUI(link_service)
+    feedback_ui = FeedbackUI(feedback_service)
     query_ui = QueryUI(file_service, link_service)
     langgraph_ui = LangGraphUI(file_service, link_service)
 
@@ -127,8 +131,8 @@ def main():
         link_ui.render_add_link_section(current_user)
 
     # Tabs for different sections
-    queryTab, langgraphTab, sourceManagementTab = st.tabs(
-        ["Ask AI", "LangGraph RAG", "Source Management"])
+    queryTab, langgraphTab, sourceManagementTab, feedbackTab = st.tabs(
+        ["Ask AI", "LangGraph RAG", "Source Management", "Feedback"])
 
     with queryTab:
         query_ui.render_query_section(current_user)
@@ -139,6 +143,9 @@ def main():
     with sourceManagementTab:
         file_ui.render_file_management(current_user)
         link_ui.render_link_management(current_user)
+
+    with feedbackTab:
+        feedback_ui.render_feedback_form(current_user)
 
     # Footer
     st.markdown("---")

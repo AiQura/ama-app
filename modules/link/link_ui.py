@@ -3,7 +3,7 @@ UI components for link management in the Streamlit application.
 """
 import streamlit as st
 import pandas as pd
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 
 from modules.link.link_service import LinkService
 from modules.link.link_model import LinkModel

@@ -3,7 +3,7 @@ UI components for file management in the Streamlit application.
 """
 import streamlit as st
 import pandas as pd
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 
 from modules.file.file_service import FileService
 from modules.file.file_model import FileModel
