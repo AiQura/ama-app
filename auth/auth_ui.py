@@ -5,6 +5,7 @@ import streamlit as st
 from typing import Optional
 
 from auth.auth_service import AuthService, User
+from streamlit_cookies_controller import CookieController
 
 SESSION_STATE_KEY = "authenticated_user"
 SESSION_ID_KEY = "session_id"
@@ -21,6 +22,20 @@ class AuthUI:
             auth_service: AuthService instance
         """
         self.auth_service = auth_service
+        self.cookies = CookieController()
+
+    def sync_session_id(self) -> str | None:
+        """
+        Gets the sessions ID from streamlit session or browser cookie
+        """
+        if SESSION_ID_KEY in st.session_state:
+            self.cookies.set(SESSION_ID_KEY, st.session_state[SESSION_ID_KEY])
+            return st.session_state[SESSION_ID_KEY]
+
+        session_id = self.cookies.get(SESSION_ID_KEY)
+        if session_id is not None:
+            st.session_state[SESSION_ID_KEY] = session_id
+            return session_id
 
     def is_authenticated(self) -> bool:
         """
@@ -32,6 +47,8 @@ class AuthUI:
         # Check if user is in session state
         if SESSION_STATE_KEY in st.session_state:
             return True
+
+        self.sync_session_id()
 
         # Check if session ID is in session state
         if SESSION_ID_KEY in st.session_state:
@@ -61,13 +78,17 @@ class AuthUI:
         st.title("Login to Artificial Maintenance Agent")
 
         # Create columns for layout
-        col1, col2 = st.columns([1, 1])
 
-        with col1:
+        st.markdown("""
+        ### Welcome
+        Please enter your credentials to login to the AMA.
+        """)
+
+        with st.form("Login"):
             email = st.text_input("Email")
             password = st.text_input("Password", type="password")
 
-            if st.button("Login"):
+            if st.form_submit_button("Login"):
                 if email and password:
                     user = self.auth_service.authenticate(email, password)
 
@@ -79,6 +100,7 @@ class AuthUI:
                             # Store in session state
                             st.session_state[SESSION_STATE_KEY] = user
                             st.session_state[SESSION_ID_KEY] = session_id
+                            self.sync_session_id()
                             st.rerun()
                         else:
                             st.error(
@@ -88,11 +110,6 @@ class AuthUI:
                 else:
                     st.error("Please enter your email and password.")
 
-        with col2:
-            st.markdown("""
-            ### Welcome
-            Please enter your credentials to login to the AMA.
-            """)
 
     def render_logout_button(self) -> None:
         """Render the logout button."""
@@ -102,12 +119,12 @@ class AuthUI:
                 self.auth_service.delete_session(
                     st.session_state[SESSION_ID_KEY])
 
+                del st.session_state[SESSION_ID_KEY]
+                self.cookies.remove(SESSION_ID_KEY)
+
             # Clear session state
             if SESSION_STATE_KEY in st.session_state:
                 del st.session_state[SESSION_STATE_KEY]
-
-            if SESSION_ID_KEY in st.session_state:
-                del st.session_state[SESSION_ID_KEY]
 
             st.rerun()
 

@@ -35,7 +35,7 @@ class FileService:
                 path TEXT NOT NULL,
                 size INTEGER NOT NULL,
                 type TEXT,
-                uploaded_at TEXT NOT NULL,
+                uploaded_at TIMESTAMP NOT NULL,
                 FOREIGN KEY (user_id) REFERENCES users (user_id)
             )
             ''')

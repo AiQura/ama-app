@@ -22,3 +22,4 @@ beautifulsoup4>=4.12.3
 # Rafik
 sentence-transformers
 psycopg2-binary
+streamlit-cookies-controller

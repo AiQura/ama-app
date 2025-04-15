@@ -1,7 +1,7 @@
 """
 Authentication service for the Streamlit AMA.
 """
-import os
+
 import hashlib
 import uuid
 from typing import Dict, Optional, Any
@@ -10,6 +10,7 @@ import sqlite3
 from datetime import datetime, timedelta
 import streamlit as st
 
+from config.config import SESSION_DURATION_IN_DAYS
 from utils.db_conenciton import db_conenciton
 
 
@@ -36,6 +37,7 @@ class AuthService:
         """Initialize the authentication service."""
         self._initialize_db()
         self._initialize_predefined_users()
+        self.delete_expired_sessions()
 
     def _initialize_db(self) -> None:
         """Initialize the SQLite database for authentication."""
@@ -48,7 +50,7 @@ class AuthService:
                 email TEXT UNIQUE NOT NULL,
                 password_hash TEXT NOT NULL,
                 name TEXT,
-                created_at TEXT NOT NULL
+                created_at TIMESTAMP NOT NULL
             )
             ''')
 
@@ -57,8 +59,8 @@ class AuthService:
             CREATE TABLE IF NOT EXISTS sessions (
                 session_id TEXT PRIMARY KEY,
                 user_id TEXT NOT NULL,
-                created_at TEXT NOT NULL,
-                expires_at TEXT NOT NULL,
+                created_at TIMESTAMP NOT NULL,
+                expires_at TIMESTAMP NOT NULL,
                 FOREIGN KEY (user_id) REFERENCES users (user_id)
             )
             ''')
@@ -175,7 +177,7 @@ class AuthService:
         try:
             session_id = str(uuid.uuid4())
             created_at = datetime.now().isoformat()
-            expires_at = (datetime.now() + timedelta(days=7)).isoformat()
+            expires_at = (datetime.now() + timedelta(days=SESSION_DURATION_IN_DAYS)).isoformat()
 
             with db_conenciton() as cursor:
                 # Insert session into database
@@ -242,6 +244,27 @@ class AuthService:
             return True
         except Exception as e:
             print(f"Error deleting session: {e}")
+            return False
+
+    def delete_expired_sessions(self) -> bool:
+        """
+        Delete all expired sessions.
+
+        Args:
+            session_id: The session ID to delete
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            with db_conenciton() as cursor:
+                # Delete session from database
+                cursor.execute(
+                    "DELETE FROM sessions WHERE expires_at < %s", (datetime.now().isoformat(),))
+
+            return True
+        except Exception as e:
+            print(f"Error deleting sessions: {e}")
             return False
 
     def get_user(self, user_id: str) -> Optional[User]:

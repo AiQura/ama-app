@@ -28,7 +28,7 @@ class LinkService:
                 user_id TEXT NOT NULL,
                 url TEXT NOT NULL,
                 description TEXT,
-                added_at TEXT NOT NULL,
+                added_at TIMESTAMP NOT NULL,
                 FOREIGN KEY (user_id) REFERENCES users (user_id)
             )
             ''')

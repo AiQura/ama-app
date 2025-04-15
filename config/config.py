@@ -13,3 +13,6 @@ UPLOAD_DIR = os.path.join(BASE_DIR, "data", "uploaded_files")
 APP_TITLE = "AMA"
 APP_ICON = "🤖"
 APP_LAYOUT = "wide"
+
+# AUTH Config
+SESSION_DURATION_IN_DAYS = 1
