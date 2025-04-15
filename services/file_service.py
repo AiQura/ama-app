@@ -98,7 +98,7 @@ class FileService:
                     """
                     INSERT INTO files
                     (file_id, user_id, name, path, size, type, uploaded_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
                         file_id, user_id, filename, file_path,
@@ -127,7 +127,7 @@ class FileService:
                     """
                     SELECT file_id, user_id, name, path, size, type, uploaded_at
                     FROM files
-                    WHERE file_id = ?
+                    WHERE file_id = %s
                     """,
                     (file_id,)
                 )
@@ -167,7 +167,7 @@ class FileService:
                     """
                     SELECT file_id, user_id, name, path, size, type, uploaded_at
                     FROM files
-                    WHERE user_id = ?
+                    WHERE user_id = %s
                     ORDER BY uploaded_at DESC
                     """,
                     (user_id,)
@@ -266,7 +266,7 @@ class FileService:
 
             # Delete from database
             with db_conenciton() as cursor:
-                cursor.execute("DELETE FROM files WHERE file_id = ?", (file_id,))
+                cursor.execute("DELETE FROM files WHERE file_id = %s", (file_id,))
 
             return True
         except Exception as e:
@@ -294,7 +294,7 @@ class FileService:
 
             # Delete from database
             with db_conenciton() as cursor:
-                cursor.execute("DELETE FROM files WHERE user_id = ?", (user_id,))
+                cursor.execute("DELETE FROM files WHERE user_id = %s", (user_id,))
             return True
         except Exception as e:
             print(f"Error deleting user files: {e}")

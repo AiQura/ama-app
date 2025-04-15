@@ -73,7 +73,7 @@ class AuthService:
 
             # Check if user already exists
             with db_conenciton() as cursor:
-                cursor.execute("SELECT email FROM users WHERE email = ?", (email,))
+                cursor.execute("SELECT email FROM users WHERE email = %s", (email,))
                 exists = cursor.fetchone()
 
             if not exists:
@@ -82,7 +82,7 @@ class AuthService:
 
     def _get_salt(self) -> str:
         """Get the salt for password hashing."""
-        return os.environ.get('AUTH_SALT', "")
+        return st.secrets.auth["AUTH_SALT"]
 
     def _hash_password(self, password: str) -> str:
         """
@@ -118,7 +118,7 @@ class AuthService:
             with db_conenciton() as cursor:
                 # Insert user into database
                 cursor.execute(
-                    "INSERT INTO users (user_id, email, password_hash, name, created_at) VALUES (?, ?, ?, ?, ?)",
+                    "INSERT INTO users (user_id, email, password_hash, name, created_at) VALUES (%s, %s, %s, %s, %s)",
                     (user_id, email, password_hash, name, created_at)
                 )
 
@@ -147,7 +147,7 @@ class AuthService:
             with db_conenciton() as cursor:
                 # Find user with matching email and password
                 cursor.execute(
-                    "SELECT user_id, email, name FROM users WHERE email = ? AND password_hash = ?",
+                    "SELECT user_id, email, name FROM users WHERE email = %s AND password_hash = %s",
                     (email, password_hash)
                 )
 
@@ -180,7 +180,7 @@ class AuthService:
             with db_conenciton() as cursor:
                 # Insert session into database
                 cursor.execute(
-                    "INSERT INTO sessions (session_id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
+                    "INSERT INTO sessions (session_id, user_id, created_at, expires_at) VALUES (%s, %s, %s, %s)",
                     (session_id, user.user_id, created_at, expires_at)
                 )
 
@@ -207,7 +207,7 @@ class AuthService:
                     SELECT s.user_id, u.email, u.name
                     FROM sessions s
                     JOIN users u ON s.user_id = u.user_id
-                    WHERE s.session_id = ? AND s.expires_at > ?
+                    WHERE s.session_id = %s AND s.expires_at > %s
                     """,
                     (session_id, datetime.now().isoformat())
                 )
@@ -237,7 +237,7 @@ class AuthService:
             with db_conenciton() as cursor:
                 # Delete session from database
                 cursor.execute(
-                    "DELETE FROM sessions WHERE session_id = ?", (session_id,))
+                    "DELETE FROM sessions WHERE session_id = %s", (session_id,))
 
             return True
         except Exception as e:
@@ -258,7 +258,7 @@ class AuthService:
             with db_conenciton() as cursor:
                 # Find user by ID
                 cursor.execute(
-                    "SELECT user_id, email, name FROM users WHERE user_id = ?",
+                    "SELECT user_id, email, name FROM users WHERE user_id = %s",
                     (user_id,)
                 )
 
@@ -287,7 +287,7 @@ class AuthService:
             with db_conenciton() as cursor:
                 # Find user by email
                 cursor.execute(
-                    "SELECT user_id, email, name FROM users WHERE email = ?",
+                    "SELECT user_id, email, name FROM users WHERE email = %s",
                     (email,)
                 )
 

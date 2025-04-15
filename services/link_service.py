@@ -68,7 +68,7 @@ class LinkService:
                     """
                     INSERT INTO links
                     (link_id, user_id, url, description, added_at)
-                    VALUES (?, ?, ?, ?, ?)
+                    VALUES (%s, %s, %s, %s, %s)
                     """,
                     (link_id, user_id, url, description, added_at)
                 )
@@ -94,7 +94,7 @@ class LinkService:
                     """
                     SELECT link_id, user_id, url, description, added_at
                     FROM links
-                    WHERE link_id = ?
+                    WHERE link_id = %s
                     """,
                     (link_id,)
                 )
@@ -132,7 +132,7 @@ class LinkService:
                     """
                     SELECT link_id, user_id, url, description, added_at
                     FROM links
-                    WHERE user_id = ?
+                    WHERE user_id = %s
                     ORDER BY added_at DESC
                     """,
                     (user_id,)
@@ -205,7 +205,7 @@ class LinkService:
         """
         try:
             with db_conenciton() as cursor:
-                cursor.execute("DELETE FROM links WHERE link_id = ?", (link_id,))
+                cursor.execute("DELETE FROM links WHERE link_id = %s", (link_id,))
 
             return True
         except Exception as e:
@@ -224,7 +224,7 @@ class LinkService:
         """
         try:
             with db_conenciton() as cursor:
-                cursor.execute("DELETE FROM links WHERE user_id = ?", (user_id,))
+                cursor.execute("DELETE FROM links WHERE user_id = %s", (user_id,))
 
             return True
         except Exception as e:
@@ -267,8 +267,8 @@ class LinkService:
                 cursor.execute(
                     """
                     UPDATE links
-                    SET url = ?, description = ?
-                    WHERE link_id = ?
+                    SET url = %s, description = %s
+                    WHERE link_id = %s
                     """,
                     (link.url, link.description, link_id)
                 )
