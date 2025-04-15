@@ -8,10 +8,10 @@ import uuid
 from typing import List, Optional, BinaryIO, Union
 from datetime import datetime
 
-from models.file_model import FileModel
+from modules.file.file_model import FileModel
 from config.config import UPLOAD_DIR
 from utils.db_conenciton import db_conenciton, get_supabase_client
-from utils.storage import delete_file
+from modules.file.file_utils import delete_file
 
 class FileService:
     """

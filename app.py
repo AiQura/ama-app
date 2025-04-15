@@ -1,14 +1,14 @@
 """
 Main entry point for the Streamlit AMA application.
 """
-from auth.auth_ui import AuthUI
-from auth.auth_service import AuthService
+from modules.auth.auth_ui import AuthUI
+from modules.auth.auth_service import AuthService
 from ui.langgraph_ui import LangGraphUI
 from ui.query_ui import QueryUI
-from ui.link_ui import LinkUI
-from ui.file_ui import FileUI
-from services.link_service import LinkService
-from services.file_service import FileService
+from modules.link.link_ui import LinkUI
+from modules.file.file_ui import FileUI
+from modules.link.link_service import LinkService
+from modules.file.file_service import FileService
 from config.config import APP_TITLE, APP_ICON, APP_LAYOUT
 import os
 import streamlit as st

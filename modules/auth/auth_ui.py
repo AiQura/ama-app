@@ -4,7 +4,7 @@ UI components for authentication in the Streamlit application.
 import streamlit as st
 from typing import Optional
 
-from auth.auth_service import AuthService, User
+from modules.auth.auth_service import AuthService, User
 from streamlit_cookies_controller import CookieController
 
 SESSION_STATE_KEY = "authenticated_user"

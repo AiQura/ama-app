@@ -8,8 +8,8 @@ from langchain_core.vectorstores.base import VectorStoreRetriever
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import WebBaseLoader, PyPDFLoader, TextLoader, CSVLoader
 from langchain_openai import OpenAIEmbeddings
-from models.file_model import FileModel
-from models.link_model import LinkModel
+from modules.file.file_model import FileModel
+from modules.link.link_model import LinkModel
 
 # Check for environment variables
 def check_api_key():

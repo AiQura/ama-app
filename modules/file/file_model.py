@@ -3,7 +3,7 @@ File model for representing uploaded files in the application.
 """
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 
 @dataclass

@@ -5,9 +5,9 @@ import streamlit as st
 import pandas as pd
 from typing import List, Dict, Any, Optional
 
-from services.link_service import LinkService
-from models.link_model import LinkModel
-from auth.auth_service import User
+from modules.link.link_service import LinkService
+from modules.link.link_model import LinkModel
+from modules.auth.auth_service import User
 
 
 class LinkUI:

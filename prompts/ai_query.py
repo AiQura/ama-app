@@ -1,8 +1,8 @@
 
 from typing import Dict, List, Any, Optional
 
-from models.file_model import FileModel
-from models.link_model import LinkModel
+from modules.file.file_model import FileModel
+from modules.link.link_model import LinkModel
 from utils.ai_utils import get_ai_client, retrieve_documents
 
 def run_ai_query(query: str, files: Optional[List[FileModel]] = None,

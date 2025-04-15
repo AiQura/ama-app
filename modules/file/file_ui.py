@@ -5,9 +5,9 @@ import streamlit as st
 import pandas as pd
 from typing import List, Dict, Any, Optional
 
-from services.file_service import FileService
-from models.file_model import FileModel
-from auth.auth_service import User
+from modules.file.file_service import FileService
+from modules.file.file_model import FileModel
+from modules.auth.auth_service import User
 
 
 class FileUI:

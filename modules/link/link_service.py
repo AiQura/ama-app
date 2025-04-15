@@ -5,7 +5,7 @@ import uuid
 from typing import List, Optional
 from datetime import datetime
 
-from models.link_model import LinkModel
+from modules.link.link_model import LinkModel
 from utils.db_conenciton import db_conenciton
 
 

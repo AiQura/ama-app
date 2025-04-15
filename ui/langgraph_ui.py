@@ -5,10 +5,10 @@ import os
 import streamlit as st
 from typing import Optional
 
-from auth.auth_service import User
+from modules.auth.auth_service import User
 from prompts.rag_query import run_rag_query
-from services.file_service import FileService
-from services.link_service import LinkService
+from modules.file.file_service import FileService
+from modules.link.link_service import LinkService
 from langgraph_integration.ingestion import initialize_retriever
 
 
