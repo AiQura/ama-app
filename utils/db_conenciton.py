@@ -6,6 +6,11 @@ from contextlib import contextmanager
 import psycopg2
 
 import streamlit as st
+from supabase import create_client, Client
+
+@st.cache_resource
+def get_supabase_client() -> Client:
+    return create_client(st.secrets.supabase["SUPABASE_URL"], st.secrets.supabase["SUPABASE_KEY"])
 
 @st.cache_resource
 def get_db_connection():

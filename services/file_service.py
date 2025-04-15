@@ -2,13 +2,15 @@
 Service for managing file operations in the application.
 """
 import os
+import pathlib
+import streamlit as st
 import uuid
 from typing import List, Optional, BinaryIO, Union
 from datetime import datetime
 
 from models.file_model import FileModel
 from config.config import UPLOAD_DIR
-from utils.db_conenciton import db_conenciton
+from utils.db_conenciton import db_conenciton, get_supabase_client
 from utils.storage import delete_file
 
 class FileService:
@@ -22,6 +24,9 @@ class FileService:
         os.makedirs(UPLOAD_DIR, exist_ok=True)
 
         self._initialize_db()
+
+        supabase = get_supabase_client()
+        self.bucket = supabase.storage.from_(st.secrets.bucket["BUCKET_NAME"])
 
     def _initialize_db(self) -> None:
         """Initialize the database tables for file storage."""
@@ -39,6 +44,7 @@ class FileService:
                 FOREIGN KEY (user_id) REFERENCES users (user_id)
             )
             ''')
+            cursor.execute('ALTER TABLE files ENABLE ROW LEVEL SECURITY;')
 
     def add_file(self, file: Union[BinaryIO, bytes, bytearray, memoryview],
                 filename: str, file_type: str = "", user_id: str = "") -> Optional[FileModel]:
@@ -62,18 +68,28 @@ class FileService:
             user_upload_dir = os.path.join(UPLOAD_DIR, user_id) if user_id else UPLOAD_DIR
             os.makedirs(user_upload_dir, exist_ok=True)
 
-            file_path = os.path.join(user_upload_dir, f"{file_id}_{filename}")
+            file_name = f"{file_id}_{filename}"
+            file_path = os.path.join(user_upload_dir, file_name)
+            file_relative_path = f"{user_id}/{file_name}"
 
             # Save the file - handle different types of inputs
             with open(file_path, "wb") as f:
                 if hasattr(file, 'read'):
                     # If it's a file-like object
-                    f.write(file.read())
+                    content = file.read()
                 elif isinstance(file, (bytes, bytearray, memoryview)):
                     # If it's binary data
-                    f.write(file)
+                    content = file
                 else:
                     raise TypeError(f"Unsupported file type: {type(file)}")
+
+                f.write(content)
+
+            self.bucket.upload(
+                file=pathlib.Path(file_path),
+                path=file_relative_path,
+                file_options={"cache-control": "86400", "upsert": "false"} # 86400 is 1 day
+            )
 
             # Get file size
             file_size = os.path.getsize(file_path)
@@ -101,7 +117,7 @@ class FileService:
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
-                        file_id, user_id, filename, file_path,
+                        file_id, user_id, filename, file_relative_path,
                         file_size, file_type, uploaded_at
                     )
                 )
@@ -110,6 +126,43 @@ class FileService:
         except Exception as e:
             print(f"Error adding file: {e}")
             return None
+
+    def _relative_from_absolute_path(self, file_path: str) -> str:
+        """
+        takes the absolute path of the file, returns the file name with the parent directory
+
+        Args:
+            file_path: absolute path of the file
+
+        Returns:
+            str: Relative path of the file locally
+        """
+
+        p = pathlib.Path(file_path)
+        return os.path.join(*p.parts[-2:])
+
+    def _sync_file_with_bucket(self, file_path: str) -> str:
+        """
+        Check if file exists locally. If not, downloads it from the bucket
+
+        Args:
+            file_path: relative path of the file
+
+        Returns:
+            str: Absolute path of the file locally
+        """
+        absolute_path = os.path.join(UPLOAD_DIR, file_path)
+
+        if os.path.isfile(absolute_path):
+            return absolute_path
+
+        os.makedirs(os.path.join(UPLOAD_DIR, file_path.split('/')[0]), exist_ok=True)
+
+        with open(absolute_path, "wb+") as f:
+            f.write(self.bucket.download(file_path))
+
+        return absolute_path
+
 
     def get_file(self, file_id: str) -> Optional[FileModel]:
         """
@@ -136,10 +189,12 @@ class FileService:
             if row:
                 file_id, user_id, name, path, size, type, uploaded_at = row
 
+                file_path = self._sync_file_with_bucket(path)
+
                 return FileModel(
                     id=file_id,
                     name=name,
-                    path=path,
+                    path=file_path,
                     size=size,
                     type=type,
                     uploaded_at=uploaded_at,
@@ -179,12 +234,14 @@ class FileService:
             for row in rows:
                 file_id, user_id, name, path, size, type, uploaded_at = row
 
+                file_path = self._sync_file_with_bucket(path)
+
                 # Check if file exists on disk
-                if os.path.exists(path):
+                if os.path.exists(file_path):
                     files.append(FileModel(
                         id=file_id,
                         name=name,
-                        path=path,
+                        path=file_path,
                         size=size,
                         type=type,
                         uploaded_at=uploaded_at,
@@ -222,12 +279,14 @@ class FileService:
             for row in rows:
                 file_id, user_id, name, path, size, type, uploaded_at = row
 
+                file_path = self._sync_file_with_bucket(path)
+
                 # Check if file exists on disk
-                if os.path.exists(path):
+                if os.path.exists(file_path):
                     files.append(FileModel(
                         id=file_id,
                         name=name,
-                        path=path,
+                        path=file_path,
                         size=size,
                         type=type,
                         uploaded_at=uploaded_at,
@@ -261,8 +320,10 @@ class FileService:
 
             # Delete from disk
             if os.path.exists(file.path):
-                if not delete_file(file.path):
-                    return False
+                delete_file(file.path)
+
+            # Delete from bucket
+            self.bucket.remove([self._relative_from_absolute_path(file.path)])
 
             # Delete from database
             with db_conenciton() as cursor:
@@ -289,12 +350,17 @@ class FileService:
 
             # Delete each file
             for file in files:
+                # Delete from disk
                 if os.path.exists(file.path):
                     delete_file(file.path)
+                # Delete from bucket
+                self.bucket.remove([self._relative_from_absolute_path(file.path)])
+
 
             # Delete from database
             with db_conenciton() as cursor:
                 cursor.execute("DELETE FROM files WHERE user_id = %s", (user_id,))
+
             return True
         except Exception as e:
             print(f"Error deleting user files: {e}")

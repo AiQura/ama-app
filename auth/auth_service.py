@@ -53,6 +53,7 @@ class AuthService:
                 created_at TIMESTAMP NOT NULL
             )
             ''')
+            cursor.execute('ALTER TABLE users ENABLE ROW LEVEL SECURITY;')
 
             # Create sessions table
             cursor.execute('''
@@ -64,6 +65,7 @@ class AuthService:
                 FOREIGN KEY (user_id) REFERENCES users (user_id)
             )
             ''')
+            cursor.execute('ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;')
 
     def _initialize_predefined_users(self) -> None:
         """Initialize predefined users in the database."""

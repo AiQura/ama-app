@@ -151,13 +151,8 @@ class FileUI:
 
                 if self.file_service.delete_file(file_id):
                     st.success(f"File '{file_name}' deleted successfully!")
+                    st.rerun()
 
-                    # Add note about the file uploader
-                    st.info("Note: If you uploaded this file using the sidebar uploader, you may need to clear it by clicking the 'X' button there before uploading a new version.")
-
-                    # Create a button to refresh the page
-                    if st.button("Refresh file list"):
-                        st.rerun()
                 else:
                     st.error("Failed to delete file.")
 

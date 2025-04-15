@@ -32,6 +32,8 @@ class LinkService:
                 FOREIGN KEY (user_id) REFERENCES users (user_id)
             )
             ''')
+            cursor.execute('ALTER TABLE links ENABLE ROW LEVEL SECURITY;')
+
 
     def add_link(self, url: str, description: str = "", user_id: str = "") -> Optional[LinkModel]:
         """
