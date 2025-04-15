@@ -53,7 +53,7 @@ def main():
     auth_ui = AuthUI(auth_service)
     file_ui = FileUI(file_service)
     link_ui = LinkUI(link_service)
-    feedback_ui = FeedbackUI(feedback_service)
+    feedback_ui = FeedbackUI(feedback_service, auth_service)
     query_ui = QueryUI(file_service, link_service)
     langgraph_ui = LangGraphUI(file_service, link_service)
 
@@ -65,6 +65,7 @@ def main():
 
     # Get current user
     current_user = auth_ui.get_current_user()
+    is_admin = auth_ui.is_current_user_admin()
 
     # Setup environment variables
     setup_environment_variables()
@@ -145,7 +146,7 @@ def main():
         link_ui.render_link_management(current_user)
 
     with feedbackTab:
-        feedback_ui.render_feedback_form(current_user)
+        feedback_ui.render_feedback_form(current_user, is_admin)
 
     # Footer
     st.markdown("---")

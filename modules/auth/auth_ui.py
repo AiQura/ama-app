@@ -73,6 +73,21 @@ class AuthUI:
             return st.session_state[SESSION_STATE_KEY]
         return None
 
+    def is_current_user_admin(self) -> bool:
+        """
+        Get the current authenticated user.
+
+        Returns:
+            Optional[User]: The current user or None if not authenticated
+        """
+        user = self.get_current_user()
+        if not user:
+            return False
+
+        admin_emails = [st.secrets.auth["PREDEFINED_USERS"][0]['email'], st.secrets.auth["PREDEFINED_USERS"][1]['email']]
+
+        return user.email in admin_emails
+
     def render_login_page(self) -> None:
         """Render the login page."""
         st.title("Login to Artificial Maintenance Agent")

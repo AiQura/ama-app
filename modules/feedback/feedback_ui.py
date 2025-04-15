@@ -1,12 +1,12 @@
 """
 UI components for link management in the Streamlit application.
 """
+import pandas as pd
 import streamlit as st
 from typing import Optional
 
-from modules.feedback.feedback_model import FeedbackUserAnswerModel
 from modules.feedback.feedback_service import FeedbackService
-from modules.auth.auth_service import User
+from modules.auth.auth_service import AuthService, User
 
 
 class FeedbackUI:
@@ -14,17 +14,32 @@ class FeedbackUI:
     UI components for feedback form.
     """
 
-    def __init__(self, feedback_service: FeedbackService):
+    def __init__(self, feedback_service: FeedbackService, auth_service: AuthService):
         """
         Initialize the FeedbackUI.
 
         Args:
             feedback_service: FeedbackService instance
+            auth_service: AuthService instance
         """
         self.feedback_service = feedback_service
+        self.auth_service = auth_service
+
+    def get_feedback_csv(self):
+        users = self.auth_service.get_all_user()
+        questions = self.feedback_service.get_all_questions()
+        df = pd.DataFrame(index=[u.email for u in users], columns=[q.question for q in questions])
+
+        for user in users:
+            feedback = self.feedback_service.get_user_answer(user.user_id)
+            df.at[user.email, "comment"] = feedback.comment
+            for a in feedback.answers:
+                df.at[user.email, a.question.question] = a.answer
+
+        return df.to_csv().encode('utf-8')
 
 
-    def render_feedback_form(self, current_user: Optional[User] = None) -> None:
+    def render_feedback_form(self, current_user: Optional[User] = None, is_admin: bool = False) -> None:
         """
         Render the feedback from interface.
 
@@ -63,6 +78,17 @@ class FeedbackUI:
                         st.success("Feedback submitted successfully.")
                     else:
                         st.error(f"Failed to submit feedback.")
+
+        if is_admin:
+            st.download_button(
+                "Export all feedback to CSV",
+                self.get_feedback_csv(),
+                "feedback.csv",
+                "text/csv",
+                key='download-csv'
+                )
+
+
 
 
 

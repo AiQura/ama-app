@@ -326,3 +326,30 @@ class AuthService:
         except Exception as e:
             print(f"Error getting user by email: {e}")
             return None
+
+    def get_all_user(self) -> list[User]:
+        """
+        Get all users
+
+        Returns:
+            list[User]: List of all users
+        """
+        try:
+            with db_conenciton() as cursor:
+                # Find user by ID
+                cursor.execute(
+                    "SELECT user_id, email, name FROM users"
+                )
+
+                rows = cursor.fetchall()
+
+            users = []
+            for row in rows:
+                user_id, email, name = row
+                users.append(User(email=email, user_id=user_id, name=name))
+
+            return users
+
+        except Exception as e:
+            print(f"Error getting users: {e}")
+            return None
