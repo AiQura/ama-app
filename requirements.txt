@@ -21,3 +21,4 @@ sentence-transformers
 psycopg2-binary
 streamlit-cookies-controller
 supabase
+openai
