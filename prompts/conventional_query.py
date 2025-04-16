@@ -3,9 +3,9 @@ from typing import Dict, List, Any, Optional
 
 from modules.file.file_model import FileModel
 from modules.link.link_model import LinkModel
-from utils.ai_utils import get_ai_client, retrieve_documents
+from utils.ai_utils import get_ai_client, simple_ai_retriever
 
-def run_ai_query(query: str, files: Optional[List[FileModel]] = None,
+def run_conventional_query(query: str, files: Optional[List[FileModel]] = None,
                         links: Optional[List[LinkModel]] = None) -> Dict[str, Any]:
     """
     Process a query with the AI.
@@ -19,35 +19,35 @@ def run_ai_query(query: str, files: Optional[List[FileModel]] = None,
     Returns:
         Dict: Result with thinking steps and response
     """
-    # In a real implementation, this would call an external AI service or API
-    # For now, we'll simulate the AI response
-
     thinking_steps = []
 
     openai_client = get_ai_client()
-    model = "chatgpt-4o-latest"
+    model = "gpt-4o"
 
-    retrieved_documents = retrieve_documents(query, files, links)
+    retrieved_documents = simple_ai_retriever(query, files, links)
     information = "\n\n".join(retrieved_documents)
 
-    ai_response = openai_client.chat.completions.create(
-        model=model,
-        messages=[{
+    messages = [
+        {
             "role": "user",
             "content": f"""Question: {query}
 
 Information from document:
 {information}
-            """
-        }],
-        temperature=0.1,  # Add some creativity while keeping responses focused
-        # Adjust based on your needs (Max tokens for gtp-3.5 is 4096)
-        max_tokens=10000
+"""
+        }
+    ]
+
+    response = openai_client.chat.completions.create(
+        model=model,
+        messages=messages,
+        temperature=0.2,  # Add some creativity while keeping responses focused
+        max_tokens=10000   # Adjust based on your needs
     )
-    response = ai_response.choices[0].message.content
+    content = response.choices[0].message.content
 
     return {
         "question": query,
-        "answer": response,
+        "answer": content,
         "events": thinking_steps
     }

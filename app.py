@@ -6,7 +6,7 @@ from modules.auth.auth_service import AuthService
 from modules.feedback.feedback_service import FeedbackService
 from modules.feedback.feedback_ui import FeedbackUI
 from ui.langgraph_ui import LangGraphUI
-from ui.query_ui import QueryUI
+from ui.conventional_ui import ConventionalUI
 from modules.link.link_ui import LinkUI
 from modules.file.file_ui import FileUI
 from modules.link.link_service import LinkService
@@ -54,7 +54,7 @@ def main():
     file_ui = FileUI(file_service)
     link_ui = LinkUI(link_service)
     feedback_ui = FeedbackUI(feedback_service, auth_service)
-    query_ui = QueryUI(file_service, link_service)
+    conventional_ui = ConventionalUI(file_service, link_service)
     langgraph_ui = LangGraphUI(file_service, link_service)
 
     # Check if user is authenticated
@@ -132,11 +132,11 @@ def main():
         link_ui.render_add_link_section(current_user)
 
     # Tabs for different sections
-    queryTab, langgraphTab, sourceManagementTab, feedbackTab = st.tabs(
-        ["Ask AI", "LangGraph RAG", "Source Management", "Feedback"])
+    conventional, langgraphTab, sourceManagementTab, feedbackTab = st.tabs(
+        ["Conventional AI", "LangGraph RAG", "Source Management", "Feedback"])
 
-    with queryTab:
-        query_ui.render_query_section(current_user)
+    with conventional:
+        conventional_ui.render_query_section(current_user)
 
     with langgraphTab:
         langgraph_ui.render_langgraph_section(current_user)

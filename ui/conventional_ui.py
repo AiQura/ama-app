@@ -5,14 +5,14 @@ import os
 import streamlit as st
 from typing import Optional
 
-from prompts.ai_query import run_ai_query
+from prompts.conventional_query import run_conventional_query
 from modules.auth.auth_service import User
-from langgraph_integration.ingestion import initialize_retriever
 from modules.file.file_service import FileService
 from modules.link.link_service import LinkService
+from utils.vectorizer import vectorize
 
 
-class QueryUI:
+class ConventionalUI:
     """
     UI components for AI queries.
     """
@@ -47,8 +47,8 @@ class QueryUI:
             return
 
         # Initialize session state for tracking run history
-        if "query_history" not in st.session_state:
-            st.session_state.query_history = []
+        if "conventional_history" not in st.session_state:
+            st.session_state.conventional_history = []
 
         # Create two columns for file and link selection
         col1, col2 = st.columns(2)
@@ -126,9 +126,10 @@ class QueryUI:
             else:
                 with st.spinner("Building vector store from selected resources..."):
                     try:
-                        retriever = initialize_retriever(
+
+                        success = vectorize(
                             selected_files, selected_links, force_reload=True)
-                        if retriever:
+                        if success:
                             st.success(
                                 "Vector store initialized successfully!")
                         else:
@@ -151,8 +152,8 @@ class QueryUI:
                 for event in item["events"]:
                     messages.chat_message("ai").write(event)
 
-        if len(st.session_state.query_history) > 0:
-            for i, item in enumerate(st.session_state.query_history):
+        if len(st.session_state.conventional_history) > 0:
+            for i, item in enumerate(st.session_state.conventional_history):
                 display_result(item)
 
         if prompt := st.chat_input("Ask a Question", key="chat_query"):
@@ -164,18 +165,18 @@ class QueryUI:
             with st.spinner("Processing your query with LangGraph..."):
                 # Run the query through LangGraph, passing selected files and links
                 # Call the AI service
-                result = run_ai_query(
+                result = run_conventional_query(
                     query=prompt,
                     files=selected_files,
                     links=selected_links
                 )
 
                 # Store in history
-                st.session_state.query_history.append(result)
-                for i, item in enumerate(st.session_state.query_history):
+                st.session_state.conventional_history.append(result)
+                for i, item in enumerate(st.session_state.conventional_history):
                     display_result(item, False)
 
         # Option to clear history
-        if st.session_state.query_history and st.button("Clear History", key="clear"):
-            st.session_state.query_history = []
+        if st.session_state.conventional_history and st.button("Clear History", key="clear"):
+            st.session_state.conventional_history = []
             st.rerun()
