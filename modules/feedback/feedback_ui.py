@@ -1,6 +1,7 @@
 """
 UI components for link management in the Streamlit application.
 """
+import json
 import pandas as pd
 import streamlit as st
 from typing import Optional
@@ -25,18 +26,19 @@ class FeedbackUI:
         self.feedback_service = feedback_service
         self.auth_service = auth_service
 
-    def get_feedback_csv(self):
+    def get_feedback_json(self):
         users = self.auth_service.get_all_user()
-        questions = self.feedback_service.get_all_questions()
-        df = pd.DataFrame(index=[u.email for u in users], columns=[q.question for q in questions])
+        data = {}
 
         for user in users:
+            data[user.email] = {}
             feedback = self.feedback_service.get_user_answer(user.user_id)
-            df.at[user.email, "comment"] = feedback.comment
             for a in feedback.answers:
-                df.at[user.email, a.question.question] = a.answer
+                data[user.email][a.question.question] = {}
+                data[user.email][a.question.question]['answer'] = a.answer
+                data[user.email][a.question.question]['comment'] = a.comment
 
-        return df.to_csv().encode('utf-8')
+        return json.dumps(data, indent=4)
 
 
     def render_feedback_form(self, current_user: Optional[User] = None, is_admin: bool = False) -> None:
@@ -63,9 +65,15 @@ class FeedbackUI:
                     a.question.answers,
                     index=a.get_answer_index(),
                 )
+                a.comment = st.text_area(
+                    "Comment",
+                    a.comment,
+                    key=a.question.id
+                )
+
 
             feedback.comment = st.text_area(
-                "Please add your comments",
+                "Please add your general feedback",
                 feedback.comment,
             )
 
@@ -81,11 +89,11 @@ class FeedbackUI:
 
         if is_admin:
             st.download_button(
-                "Export all feedback to CSV",
-                self.get_feedback_csv(),
-                "feedback.csv",
-                "text/csv",
-                key='download-csv'
+                "Export all feedback to JSON",
+                self.get_feedback_json(),
+                "feedback.json",
+                "application/json",
+                key='download-json'
                 )
 
 

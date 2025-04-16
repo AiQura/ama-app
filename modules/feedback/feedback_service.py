@@ -176,7 +176,6 @@ class FeedbackService:
 
                 feedback = cursor.fetchone()
 
-
             if feedback:
                 answer_id, user_id, answers, comment, created_at = feedback
                 answers = json.loads(answers)
@@ -186,7 +185,7 @@ class FeedbackService:
                     user_id=user_id,
                     comment=comment,
                     created_at=created_at,
-                    answers=[FeedbackUserAnswerModel(question=question, answer=answers[question.id]) for question in questions]
+                    answers=[FeedbackUserAnswerModel(question=question, answer=answers[question.id]['answer'], comment=answers[question.id]['comment']) for question in questions]
                 )
             else:
                 return FeedbackModel(
@@ -194,7 +193,7 @@ class FeedbackService:
                     user_id=user_id,
                     comment="",
                     created_at=None,
-                    answers=[FeedbackUserAnswerModel(question=question, answer="") for question in questions]
+                    answers=[FeedbackUserAnswerModel(question=question, answer="", comment="") for question in questions]
                 )
         except Exception as e:
             print(f"Error getting user feedback: {e}")
@@ -203,7 +202,7 @@ class FeedbackService:
                 user_id=user_id,
                 comment="",
                 created_at=None,
-                answers=[FeedbackUserAnswerModel(question=question, answer="") for question in questions]
+                answers=[FeedbackUserAnswerModel(question=question, answer="", comment="") for question in questions]
             )
 
     def answer_exists(self, answer_id: str) -> bool:
@@ -237,7 +236,10 @@ class FeedbackService:
 
         answers = {}
         for a in feedback.answers:
-            answers[a.question.id] = a.answer
+            answers[a.question.id] = {
+                "answer": a.answer,
+                "comment": a.comment
+            }
 
         try:
             with db_conenciton() as cursor:

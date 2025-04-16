@@ -19,6 +19,7 @@ class FeedbackUserAnswerModel:
     """
     question: FeedbackQuestionModel
     answer: str
+    comment: str
 
 
     def get_answer_index(self) -> int | None:
