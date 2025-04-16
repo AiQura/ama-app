@@ -10,7 +10,13 @@ from openai import OpenAI
 from sentence_transformers import CrossEncoder
 import streamlit as st
 
-from langgraph_integration.ingestion import _get_retriever_id, get_retriever
+from modules.file.file_model import FileModel
+from modules.link.link_model import LinkModel
+
+# Check for environment variables
+def check_api_key():
+    """Check if OpenAI API key is available"""
+    return "OPENAI_API_KEY" in os.environ
 
 @st.cache_resource
 def get_ai_client():
@@ -20,17 +26,25 @@ def get_ai_client():
 def get_chroma_client():
     return chromadb.Client()
 
+def get_retriever_id(files: list[FileModel], links: list[LinkModel]) -> str:
+    """Generate a unique ID for a set of files and links"""
+    # Sort and combine file IDs and link IDs
+    file_ids = sorted([file.id for file in files]) if files else []
+    link_ids = sorted([link.id for link in links]) if links else []
 
-def retrieve_documents(query: str, files=None, links=None) -> list[str]:
-    retriever = get_retriever(files if files is not None else [
-    ], links if links is not None else [])
+    # Generate an ID by joining all file and link IDs
+    # Max is 63 Charected, we add "rag-chroma-" at the start
+    retriever_id = ("_".join(file_ids + link_ids))[:52]
 
-    documents = retriever.invoke(query)
-    return [doc.page_content for doc in documents]
+    # If no files or links, use "default"
+    if not retriever_id:
+        retriever_id = "default"
+
+    return retriever_id
 
 def conventional_ai_retriever(query: str, files=None, links=None) -> list[str]:
     # Get collection name
-    retriever_id = _get_retriever_id(files or [], links or [])
+    retriever_id = get_retriever_id(files or [], links or [])
     collection_name = f"rag-chroma-{retriever_id}"
 
     embedding_function = SentenceTransformerEmbeddingFunction()
@@ -43,7 +57,7 @@ def conventional_ai_retriever(query: str, files=None, links=None) -> list[str]:
 
 def rag_ai_retriever(queries: list[str], files=None, links=None) -> list[str]:
     # Get collection name
-    retriever_id = _get_retriever_id(files or [], links or [])
+    retriever_id = get_retriever_id(files or [], links or [])
     collection_name = f"rag-chroma-{retriever_id}"
 
     embedding_function = SentenceTransformerEmbeddingFunction()

@@ -2,16 +2,14 @@ import os
 import traceback
 import streamlit as st
 
-import chromadb
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter, SentenceTransformersTokenTextSplitter
 
-from langgraph_integration.ingestion import _get_documents_from_files, _get_documents_from_links, _get_retriever_id, check_api_key
-
 from modules.file.file_model import FileModel
 from modules.link.link_model import LinkModel
-from utils.ai_utils import get_chroma_client
+from utils.ai_utils import check_api_key, get_retriever_id, get_chroma_client
+from utils.documents import get_documents_from_files, get_documents_from_links
 
 
 def vectorize(files: list[FileModel] | None = None,
@@ -33,7 +31,7 @@ def vectorize(files: list[FileModel] | None = None,
         return None
 
     # Generate a unique ID for this combination of files and links
-    retriever_id = _get_retriever_id(files or [], links or [])
+    retriever_id = get_retriever_id(files or [], links or [])
 
     # Set up storage location
     collection_name = f"rag-chroma-{retriever_id}"
@@ -48,12 +46,12 @@ def vectorize(files: list[FileModel] | None = None,
 
             # Get documents from files if provided
             if files:
-                file_docs = _get_documents_from_files(files)
+                file_docs = get_documents_from_files(files)
                 documents.extend(file_docs)
 
             # Get documents from links if provided
             if links:
-                link_docs = _get_documents_from_links(links)
+                link_docs = get_documents_from_links(links)
                 documents.extend(link_docs)
 
             # If no files or links provided, use default URLs
