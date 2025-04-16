@@ -1,7 +1,31 @@
-from utils.ai_utils import get_ai_client, retrieve_documents
 
+import traceback
+from utils.ai_utils import get_ai_client, rag_ai_retriever
 
-def rag(query: str, retrieved_documents: list[str], model="chatgpt-4o-latest"):
+def augment_multiple_query(query, model="gpt-3.5-turbo"):
+    openai_client = get_ai_client()
+    messages = [
+        {
+            "role": "system",
+            "content": "You are a helpful expert Maintenance team lead . Your users are asking questions about information contained in an Attached maintenance manual. "
+            "Suggest up to 8 additional related questions to help them find the information they need, for the provided question. the last one of the questions has to ask about a step by step solution."
+            "Suggest only short questions without compound sentences, between 8 to 15 words. Suggest a variety of questions that cover different aspects of the topic."
+            "Make sure they are complete questions, and that they are related to the original question."
+            "Output one question per line. Do not number the questions."
+        },
+        {"role": "user", "content": query}
+    ]
+
+    response = openai_client.chat.completions.create(
+        model=model,
+        messages=messages,
+    )
+    content = response.choices[0].message.content
+    content = content.split("\n")
+    return content
+
+def rag4o(query, retrieved_documents, model="gpt-4o"):
+    openai_client = get_ai_client()
     information = "\n\n".join(retrieved_documents)
 
     messages = [
@@ -24,7 +48,12 @@ def rag(query: str, retrieved_documents: list[str], model="chatgpt-4o-latest"):
             - [Your step by step reasoning]
 
             Final Answer:
-            [Your detailed answer based only on the provided information, along with the part number needed, AND THIS IS A MUST WHATEVER PART MENTIONED NEEDS TO HAVE A PART NUMBER]"""
+            [Your detailed answer based only on the provided information, along with the part number needed, AND the PART NUMBER IS A MUST WHATEVER PART MENTIONED IN THE ANSWER YOU NEED TO MENTION ITS PART NUMBER]
+
+            Part Numbers:
+            [Mention every part number for whatever parts you  mentioned in your answer or thoughts, if one of the parts does not have a part number mention it does not have and mention any data for that part which is available in the manual]
+
+            """
         },
         {
             "role": "user",
@@ -37,19 +66,16 @@ Please provide your thought process and final answer."""
         }
     ]
 
-    openai_client = get_ai_client()
     response = openai_client.chat.completions.create(
         model=model,
         messages=messages,
-        temperature=0.1,  # Add some creativity while keeping responses focused
-        # Adjust based on your needs (Max tokens for gtp-3.5 is 4096)
-        max_tokens=10000
+        temperature=0.2,  # Add some creativity while keeping responses focused
+        max_tokens=10000   # Adjust based on your needs
     )
     content = response.choices[0].message.content
     return content
 
-
-def run_rag_query(question: str, files=None, links=None) -> dict:
+def run_rag_query(original_query: str, files=None, links=None) -> dict:
     """
     Run a query through the LangGraph system
 
@@ -61,30 +87,25 @@ def run_rag_query(question: str, files=None, links=None) -> dict:
     Returns:
         dict: The final state with the answer
     """
-    # model = "gpt-3.5-turbo-16k"
-    model = "chatgpt-4o-latest"
-
     try:
-        # First iteration
-        first_documents = retrieve_documents(question, files, links)
-        hypothetical_answer = rag(
-            query=question, retrieved_documents=first_documents, model=model)
+        augmented_queries = augment_multiple_query(original_query)
+        queries = [original_query] + augmented_queries
 
-        # Second iteration
-        joint_query = f"{question} \n {hypothetical_answer}"
-        last_documents = retrieve_documents(joint_query, files, links)
-        final_answer = rag(
-            query=question, retrieved_documents=last_documents, model=model)
+        ranked_retrieved_documents = rag_ai_retriever(queries, files, links)
+        ranked_results = rag4o(queries[-1], ranked_retrieved_documents)
 
         return {
-            "question": question,
-            "answer": final_answer,
+            "question": original_query,
+            "answer": ranked_results,
             "events": []
         }
     except Exception as e:
         error_message = str(e)
+        print(traceback.format_exc())
+
         return {
-            "question": question,
+            "question": original_query,
             "answer": f"Error processing query: {error_message}",
             "events": ["Error: " + error_message]
         }
+

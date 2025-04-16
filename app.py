@@ -1,6 +1,7 @@
 """
 Main entry point for the Streamlit AMA application.
 """
+import torch
 from modules.auth.auth_ui import AuthUI
 from modules.auth.auth_service import AuthService
 from modules.feedback.feedback_service import FeedbackService
@@ -15,6 +16,8 @@ from config.config import APP_TITLE, APP_ICON, APP_LAYOUT
 import os
 import streamlit as st
 
+
+torch.classes.__path__ = []
 
 
 def setup_page_config():

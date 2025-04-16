@@ -126,7 +126,6 @@ class ConventionalUI:
             else:
                 with st.spinner("Building vector store from selected resources..."):
                     try:
-
                         success = vectorize(
                             selected_files, selected_links, force_reload=True)
                         if success:
@@ -134,7 +133,7 @@ class ConventionalUI:
                                 "Vector store initialized successfully!")
                         else:
                             st.error(
-                                "Failed to initialize vector store. Check API keys.")
+                                "Failed to initialize vector store.")
                     except Exception as e:
                         st.error(f"Error initializing vector store: {e}")
 

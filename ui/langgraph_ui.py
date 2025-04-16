@@ -9,7 +9,7 @@ from modules.auth.auth_service import User
 from prompts.rag_query import run_rag_query
 from modules.file.file_service import FileService
 from modules.link.link_service import LinkService
-from langgraph_integration.ingestion import initialize_retriever
+from utils.vectorizer import vectorize
 
 
 class LangGraphUI:
@@ -141,14 +141,14 @@ class LangGraphUI:
             else:
                 with st.spinner("Building vector store from selected resources..."):
                     try:
-                        retriever = initialize_retriever(
+                        success = vectorize(
                             selected_files, selected_links, force_reload=True)
-                        if retriever:
+                        if success:
                             st.success(
                                 "Vector store initialized successfully!")
                         else:
                             st.error(
-                                "Failed to initialize vector store. Check API keys.")
+                                "Failed to initialize vector store.")
                     except Exception as e:
                         st.error(f"Error initializing vector store: {e}")
 
@@ -167,7 +167,7 @@ class LangGraphUI:
                     messages.chat_message("ai").write(event)
 
         if len(st.session_state.langgraph_history) > 0:
-            for i, item in enumerate(st.session_state.langgraph_history):
+            for item in st.session_state.langgraph_history:
                 display_result(item)
 
         if prompt := st.chat_input("Ask a Question"):
@@ -184,7 +184,7 @@ class LangGraphUI:
 
                 # Store in history
                 st.session_state.langgraph_history.append(result)
-                for i, item in enumerate(st.session_state.langgraph_history):
+                for item in st.session_state.langgraph_history:
                     display_result(item, False)
 
         # Option to clear history

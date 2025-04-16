@@ -1,4 +1,5 @@
 import os
+import traceback
 import streamlit as st
 
 import chromadb
@@ -10,6 +11,7 @@ from langgraph_integration.ingestion import _get_documents_from_files, _get_docu
 
 from modules.file.file_model import FileModel
 from modules.link.link_model import LinkModel
+from utils.ai_utils import get_chroma_client
 
 
 def vectorize(files: list[FileModel] | None = None,
@@ -81,7 +83,7 @@ def vectorize(files: list[FileModel] | None = None,
 
             embedding_function = SentenceTransformerEmbeddingFunction()
 
-            chroma_client = chromadb.Client()
+            chroma_client = get_chroma_client()
             chroma_collection = chroma_client.create_collection(collection_name, embedding_function=embedding_function)
 
             ids = [str(i) for i in range(len(token_split_texts))]
@@ -92,6 +94,7 @@ def vectorize(files: list[FileModel] | None = None,
 
         except Exception as e:
             print(f"Error building vector store: {e}")
+            print(traceback.format_exc())
             st.error(f"Error building vector store: {e}")
             return False
     else:

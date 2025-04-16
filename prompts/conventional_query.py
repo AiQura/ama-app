@@ -3,7 +3,7 @@ from typing import Dict, List, Any, Optional
 
 from modules.file.file_model import FileModel
 from modules.link.link_model import LinkModel
-from utils.ai_utils import get_ai_client, simple_ai_retriever
+from utils.ai_utils import get_ai_client, conventional_ai_retriever
 
 def run_conventional_query(query: str, files: Optional[List[FileModel]] = None,
                         links: Optional[List[LinkModel]] = None) -> Dict[str, Any]:
@@ -24,7 +24,7 @@ def run_conventional_query(query: str, files: Optional[List[FileModel]] = None,
     openai_client = get_ai_client()
     model = "gpt-4o"
 
-    retrieved_documents = simple_ai_retriever(query, files, links)
+    retrieved_documents = conventional_ai_retriever(query, files, links)
     information = "\n\n".join(retrieved_documents)
 
     messages = [
