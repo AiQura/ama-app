@@ -1,4 +1,4 @@
-from typing import List, TypedDict
+from typing import TypedDict
 
 
 class GraphState(TypedDict):
@@ -6,6 +6,7 @@ class GraphState(TypedDict):
     Represents the state of our graph.
 
     Attributes:
+        retriever_id: The id used to fetch the correct collection
         question: question
         generation: LLM generation
         spare_parts_generation: whether to search for the price or not
@@ -14,9 +15,10 @@ class GraphState(TypedDict):
         price_documents: list of documents
     """
 
+    retriever_id: str
     question: str
     generation: str
     spare_parts_generation: str
     web_search: bool
-    documents: List[str]
-    price_documents: List[str]
+    documents: list[str]
+    price_documents: list[str]

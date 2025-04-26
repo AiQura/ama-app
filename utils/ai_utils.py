@@ -55,9 +55,8 @@ def conventional_ai_retriever(query: str, files=None, links=None) -> list[str]:
     return results['documents'][0]
 
 
-def rag_ai_retriever(queries: list[str], files=None, links=None) -> list[str]:
+def rag_ai_retriever(queries: list[str], retriever_id: str) -> list[str]:
     # Get collection name
-    retriever_id = get_retriever_id(files or [], links or [])
     collection_name = f"rag-chroma-{retriever_id}"
 
     embedding_function = SentenceTransformerEmbeddingFunction()
@@ -73,11 +72,10 @@ def rag_ai_retriever(queries: list[str], files=None, links=None) -> list[str]:
             unique_documents.add(document)
 
     unique_documents = list(unique_documents)
-    original_query = queries[0]
 
     pairs = []
     for doc in unique_documents:
-        pairs.append([queries[-1], doc])
+        pairs.append([queries[0], doc])
 
     cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
     scores = cross_encoder.predict(pairs)

@@ -9,7 +9,9 @@ from modules.auth.auth_service import User
 from prompts.rag_query import run_rag_query
 from modules.file.file_service import FileService
 from modules.link.link_service import LinkService
+from utils.ai_utils import get_retriever_id
 from utils.vectorizer import vectorize
+from graph.graph import get_graph
 
 
 class LangGraphUI:
@@ -179,8 +181,17 @@ class LangGraphUI:
 
             with st.spinner("Processing your query with LangGraph..."):
                 # Run the query through LangGraph, passing selected files and links
-                result = run_rag_query(
-                    prompt, selected_files, selected_links)
+                retriever_id = get_retriever_id(selected_files, selected_links)
+                inputs = {"question": prompt, "retriever_id": retriever_id}
+                app = get_graph()
+                final_state = app.invoke(inputs)
+                result = {
+                    "question": prompt,
+                    "answer": final_state["generation"],
+                    "events": []
+                }
+                # result = run_rag_query(
+                #     prompt, selected_files, selected_links)
 
                 # Store in history
                 st.session_state.langgraph_history.append(result)

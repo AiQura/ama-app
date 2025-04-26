@@ -26,8 +26,6 @@ torch
 
 
 #New_ismail
-dotenv
-python-dotenv 
 pydantic
 langchain_openai
 langchain_core

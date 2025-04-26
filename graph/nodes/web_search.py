@@ -1,5 +1,3 @@
-from typing import Any, Dict
-
 from langchain.schema import Document
 from langchain_community.tools.tavily_search import TavilySearchResults
 
@@ -8,7 +6,7 @@ from graph.state import GraphState
 web_search_tool = TavilySearchResults(k=3)
 
 
-def web_search(state: GraphState) -> Dict[str, Any]:
+def web_search(state: GraphState) -> GraphState:
     print("---WEB SEARCH---")
     question = state["question"]
     documents = state["documents"]

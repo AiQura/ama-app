@@ -1,5 +1,5 @@
-RETRIEVE = "retrieve"
-GRADE_DOCUMENTS = "grade_documents"
+RETRIEVE_AND_GRADE = "retrieve_and_grade"
 GENERATE = "generate"
-REFLECTION="reflection"
+REFLECT="reflect"
+EXTRACT_SPARE_PARTS="extract_spare_parts"
 WEBSEARCH = "websearch"

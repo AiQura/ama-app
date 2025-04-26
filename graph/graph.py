@@ -1,22 +1,18 @@
-from dotenv import load_dotenv
 from langgraph.checkpoint.memory import MemorySaver
-from langgraph.checkpoint.sqlite import SqliteSaver
-from langgraph.graph import END, StateGraph
+from langgraph.graph import END, StateGraph, START
 
 from graph.chains.answer_grader import answer_grader
 from graph.chains.hallucination_grader import hallucination_grader
 from graph.chains.router import question_router, RouteQuery
-from graph.consts import GENERATE, GRADE_DOCUMENTS, RETRIEVE, WEBSEARCH
-from graph.nodes import generate, grade_documents, retrieve, web_search
+from graph.consts import EXTRACT_SPARE_PARTS, GENERATE, REFLECT, RETRIEVE_AND_GRADE, WEBSEARCH
+from graph.nodes.generate import generate
+from graph.nodes.retrieve import retrieve
 from graph.state import GraphState
 
-load_dotenv()
-memory = SqliteSaver.from_conn_string(":memory:")
-memory = MemorySaver()
 
 
-def decide_to_generate(state):
-    print("---ASSESS GRADED DOCUMENTS---")
+def reflection_decision_maker(state):
+    print("---ASSESS REFLECTION OUTPUT---")
 
     if state["web_search"]:
         print(
@@ -62,44 +58,46 @@ def route_question(state: GraphState) -> str:
         return WEBSEARCH
     elif source.datasource == "vectorstore":
         print("---ROUTE QUESTION TO RAG---")
-        return RETRIEVE
+        return RETRIEVE_AND_GRADE
+
+def get_graph():
+    workflow = StateGraph(GraphState)
+    workflow.add_node(RETRIEVE_AND_GRADE, retrieve)
+    workflow.add_node(GENERATE, generate)
+    # workflow.add_node(REFLECT,)
+    # workflow.add_node(EXTRACT_SPARE_PARTS,)
+    # workflow.add_node(WEBSEARCH, web_search)
 
 
-workflow = StateGraph(GraphState)
-workflow.add_node(RETRIEVE, retrieve)
-workflow.add_node(GRADE_DOCUMENTS, grade_documents)
-workflow.add_node(GENERATE, generate)
-workflow.add_node(WEBSEARCH, web_search)
+    workflow.add_edge(START, RETRIEVE_AND_GRADE)
+    workflow.add_edge(RETRIEVE_AND_GRADE, GENERATE)
+    workflow.add_edge(GENERATE, END)
+    # workflow.add_edge(GENERATE, REFLECT)
+    # workflow.add_conditional_edges(
+    #     REFLECT,
+    #     reflection_decision_maker,
+    #     {
+    #         WEBSEARCH: WEBSEARCH,
+    #         GENERATE: GENERATE,
+    #     },
+    # )
+    # workflow.add_edge(WEBSEARCH, GENERATE)
+    # workflow.add_conditional_edges(
+    #     GENERATE,
+    #     grade_generation_grounded_in_documents_and_question,
+    #     {
+    #         "not supported": GENERATE,
+    #         "useful": END,
+    #         "not useful": WEBSEARCH,
+    #     },
+    # )
 
 
-workflow.set_conditional_entry_point(
-    route_question,
-    {
-        WEBSEARCH: WEBSEARCH,
-        RETRIEVE: RETRIEVE,
-    },
-)
-workflow.add_edge(RETRIEVE, GRADE_DOCUMENTS)
-workflow.add_conditional_edges(
-    GRADE_DOCUMENTS,
-    decide_to_generate,
-    {
-        WEBSEARCH: WEBSEARCH,
-        GENERATE: GENERATE,
-    },
-)
-workflow.add_edge(WEBSEARCH, GENERATE)
-workflow.add_conditional_edges(
-    GENERATE,
-    grade_generation_grounded_in_documents_and_question,
-    {
-        "not supported": GENERATE,
-        "useful": END,
-        "not useful": WEBSEARCH,
-    },
-)
+    # memory = MemorySaver()
+    # return workflow.compile(checkpointer=memory)
+    return workflow.compile()
 
+    # inputs = {"question": "Hello, how are you?", "retriever_id": "123"}
+    # result = app.invoke(inputs)
 
-app = workflow.compile(checkpointer=memory)
-
-# app.get_graph().draw_mermaid_png(output_file_path="graph.png")
+    # app.get_graph().draw_mermaid_png(output_file_path="graph.png")

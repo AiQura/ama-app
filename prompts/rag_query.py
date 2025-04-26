@@ -1,6 +1,6 @@
 
 import traceback
-from utils.ai_utils import get_ai_client, rag_ai_retriever
+from utils.ai_utils import get_ai_client, get_retriever_id, rag_ai_retriever
 
 def augment_multiple_query(query, model="gpt-3.5-turbo"):
     openai_client = get_ai_client()
@@ -44,19 +44,19 @@ def rag4o(query, retrieved_documents, model="gpt-4o"):
             9. If a part is reuired to fix the problem and you suggest to change it, then provide the part number and for each part, a part number has to be mentioned.
             10. provide a step-by-step solution for fixing the problem mentioned in the question.
             Format your response as:
-            
+
             Thought Process:
             - [Your step by step reasoning]
-            
+
             Final Answer:
             [Your detailed answer based only on the provided information, along with the part number needed, AND the PART NUMBER IS A MUST WHATEVER PART MENTIONED IN THE ANSWER YOU NEED TO MENTION ITS PART NUMBER]
-            
+
             Brand name:
             [Name of the Brand of the Equipment and the type or the model]
-            
+
             Part Numbers:
             [Mention every part number for whatever parts you  mentioned in your answer or thoughts, if one of the parts does not have a part number mention it does not have and mention any data for that part which is available in the manual]
-            
+
             """
         },
         {
@@ -95,8 +95,9 @@ def run_rag_query(original_query: str, files=None, links=None) -> dict:
         augmented_queries = augment_multiple_query(original_query)
         queries = [original_query] + augmented_queries
 
-        ranked_retrieved_documents = rag_ai_retriever(queries, files, links)
-        ranked_results = rag4o(queries[-1], ranked_retrieved_documents)
+        retriever_id = get_retriever_id(files or [], links or [])
+        ranked_retrieved_documents = rag_ai_retriever(queries, retriever_id)
+        ranked_results = rag4o(original_query, ranked_retrieved_documents)
 
         return {
             "question": original_query,
@@ -112,4 +113,3 @@ def run_rag_query(original_query: str, files=None, links=None) -> dict:
             "answer": f"Error processing query: {error_message}",
             "events": ["Error: " + error_message]
         }
-
