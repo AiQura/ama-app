@@ -75,7 +75,7 @@ def main():
 
     # Main page title
     st.title("AMA")
-    st.write("Upload files, add links, and ask questions to get AI-powered answers with transparent reasoning.")
+    st.write("How to use the following APP:\n\n1- select files and links using the left side bar.\n\n2- click upload selected files / add link, by that file is added to the data base.\n\n3- in confintional AI / LangGraph AI select the file from the drop down.\n\n4- click build index to vectorize the files to the vector database, only one time needed for each file.\n\n5- Ask whatever maintenance question you need to the system.\n\n6-you can use the source managment tab to manage the files you added or deleted.\n\n7- fill the feedback in the feedback section and submit it.")
 
     # Sidebar for user info, logout, file upload, and link management
     with st.sidebar:

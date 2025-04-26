@@ -22,3 +22,12 @@ psycopg2-binary
 streamlit-cookies-controller
 supabase
 openai
+torch
+
+
+#New_ismail
+dotenv
+python-dotenv 
+pydantic
+langchain_openai
+langchain_core
