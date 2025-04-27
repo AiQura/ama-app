@@ -1,21 +1,31 @@
 from langchain.schema import Document
-from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain_tavily import TavilySearch
 
 from graph.state import GraphState
 
-web_search_tool = TavilySearchResults(k=3)
+web_search_tool = TavilySearch(max_results=5)
 
 
 def web_search(state: GraphState) -> GraphState:
     print("---WEB SEARCH---")
-    question = state["question"]
-    documents = state["documents"]
+    question = state["spare_parts_generation"]
 
-    docs = web_search_tool.invoke({"query": question})
-    web_results = "\n".join([d["content"] for d in docs])
-    web_results = Document(page_content=web_results)
-    if documents is not None:
-        documents.append(web_results)
-    else:
-        documents = [web_results]
-    return {"documents": documents, "question": question}
+    result_of_search = web_search_tool.invoke({"query": question})
+
+    if 'price_documents' not in state:
+        state['price_documents'] = []
+
+    for result in result_of_search["results"]:
+        state['price_documents'].append(f"{result['url']} : {result['content']}")
+
+    prices_information = "\n\n".join(state['price_documents'])
+
+    state["generation"] += f"\n\n\n\n{prices_information}"
+
+
+    print(f"-------------------------------------> WEB SEARCH <-------------------------------------")
+    print(prices_information)
+    print("--------------------------------------------------------------------------")
+
+
+    return state

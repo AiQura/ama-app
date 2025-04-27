@@ -8,3 +8,4 @@ langenv/
 __pycache__/
 
 !.keep
+graph.png

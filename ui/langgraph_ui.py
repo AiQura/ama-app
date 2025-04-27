@@ -6,13 +6,11 @@ import streamlit as st
 from typing import Optional
 
 from modules.auth.auth_service import User
-from prompts.rag_query import run_rag_query
 from modules.file.file_service import FileService
 from modules.link.link_service import LinkService
 from utils.ai_utils import get_retriever_id
 from utils.vectorizer import vectorize
 from graph.graph import get_graph
-from langchain_core.messages import BaseMessage, AIMessage, HumanMessage, SystemMessage
 
 
 class LangGraphUI:
@@ -157,17 +155,6 @@ class LangGraphUI:
 
         # Query input
         st.subheader("Ask a Question")
-        internal_messages = st.expander('Internal messages')
-
-        def show_internal_messages(ms: list[BaseMessage]):
-            for m in ms:
-                if isinstance(m, AIMessage):
-                    internal_messages.chat_message("ai").write(m.content)
-                elif isinstance(m, HumanMessage):
-                    internal_messages.chat_message("human").write(m.content)
-                else:
-                    print(f"WEIRD MESSAGE: {type(m)}")
-                    internal_messages.chat_message("assistant").error(m)
 
         messages = st.container()
 
@@ -210,7 +197,6 @@ class LangGraphUI:
                 st.session_state.langgraph_history.append(result)
                 for item in st.session_state.langgraph_history:
                     display_result(item, False)
-                show_internal_messages(final_state['messages'])
 
         # Option to clear history
         if st.session_state.langgraph_history and st.button("Clear History"):

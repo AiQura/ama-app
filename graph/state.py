@@ -20,9 +20,8 @@ class GraphState(TypedDict):
     question: str
     generation: str
     reflection_result: str
-    reflection_index: int
+    reflection_index: int = 0
     spare_parts_generation: str
-    web_search: bool
     documents: list[str]
-    price_documents: list[str]
+    price_documents: list[str] = []
     messages: list[BaseMessage] = []
