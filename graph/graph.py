@@ -3,9 +3,11 @@ from langgraph.graph import END, StateGraph, START
 
 from graph.chains.answer_grader import answer_grader
 from graph.chains.hallucination_grader import hallucination_grader
+from graph.chains.reflection import REFLECTION_END_ANSWER
 from graph.chains.router import question_router, RouteQuery
 from graph.consts import EXTRACT_SPARE_PARTS, GENERATE, REFLECT, RETRIEVE_AND_GRADE, WEBSEARCH
 from graph.nodes.generate import generate
+from graph.nodes.reflect import reflect
 from graph.nodes.retrieve import retrieve
 from graph.state import GraphState
 
@@ -14,11 +16,11 @@ from graph.state import GraphState
 def reflection_decision_maker(state):
     print("---ASSESS REFLECTION OUTPUT---")
 
-    if state["web_search"]:
+    if REFLECTION_END_ANSWER in state["reflection_result"].lower() or state["reflection_index"] > 3:
         print(
-            "---DECISION: NOT ALL DOCUMENTS ARE NOT RELEVANT TO QUESTION, INCLUDE WEB SEARCH---"
+            "---DECISION: USEFUL ANSWER, END---"
         )
-        return WEBSEARCH
+        return END
     else:
         print("---DECISION: GENERATE---")
         return GENERATE
@@ -64,24 +66,23 @@ def get_graph():
     workflow = StateGraph(GraphState)
     workflow.add_node(RETRIEVE_AND_GRADE, retrieve)
     workflow.add_node(GENERATE, generate)
-    # workflow.add_node(REFLECT,)
+    workflow.add_node(REFLECT, reflect)
     # workflow.add_node(EXTRACT_SPARE_PARTS,)
     # workflow.add_node(WEBSEARCH, web_search)
 
 
     workflow.add_edge(START, RETRIEVE_AND_GRADE)
     workflow.add_edge(RETRIEVE_AND_GRADE, GENERATE)
-    workflow.add_edge(GENERATE, END)
-    # workflow.add_edge(GENERATE, REFLECT)
-    # workflow.add_conditional_edges(
-    #     REFLECT,
-    #     reflection_decision_maker,
-    #     {
-    #         WEBSEARCH: WEBSEARCH,
-    #         GENERATE: GENERATE,
-    #     },
-    # )
-    # workflow.add_edge(WEBSEARCH, GENERATE)
+    workflow.add_edge(GENERATE, REFLECT)
+    workflow.add_conditional_edges(
+        REFLECT,
+        reflection_decision_maker,
+        {
+            END: END,
+            GENERATE: GENERATE,
+        },
+    )
+    # workflow.add_edge(REFLECT, END)
     # workflow.add_conditional_edges(
     #     GENERATE,
     #     grade_generation_grounded_in_documents_and_question,

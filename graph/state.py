@@ -1,4 +1,5 @@
 from typing import TypedDict
+from langchain_core.messages import BaseMessage
 
 
 class GraphState(TypedDict):
@@ -18,7 +19,10 @@ class GraphState(TypedDict):
     retriever_id: str
     question: str
     generation: str
+    reflection_result: str
+    reflection_index: int
     spare_parts_generation: str
     web_search: bool
     documents: list[str]
     price_documents: list[str]
+    messages: list[BaseMessage] = []
