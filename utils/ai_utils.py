@@ -10,6 +10,7 @@ from openai import OpenAI
 from sentence_transformers import CrossEncoder
 import streamlit as st
 
+from config.config import CHROMA_PATH
 from modules.file.file_model import FileModel
 from modules.link.link_model import LinkModel
 
@@ -24,7 +25,7 @@ def get_ai_client():
 
 @st.cache_resource
 def get_chroma_client():
-    return chromadb.Client()
+    return chromadb.PersistentClient(path=CHROMA_PATH)
 
 def get_retriever_id(files: list[FileModel], links: list[LinkModel]) -> str:
     """Generate a unique ID for a set of files and links"""
