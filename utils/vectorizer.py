@@ -1,4 +1,3 @@
-import os
 import traceback
 import streamlit as st
 
@@ -28,17 +27,19 @@ def vectorize(files: list[FileModel] | None = None,
     """
     if not check_api_key():
         st.warning("⚠️ OpenAI API key required for vector store operations")
-        return None
+        return False
 
     # Generate a unique ID for this combination of files and links
     retriever_id = get_retriever_id(files or [], links or [])
 
     # Set up storage location
     collection_name = f"rag-chroma-{retriever_id}"
-    chroma_dir = os.path.join("./.chroma", retriever_id)
+
+    chroma_client = get_chroma_client()
+    existing_chroma_names = [c.name for c in chroma_client.list_collections()]
 
     # Check if we need to build the index
-    if force_reload or not os.path.exists(chroma_dir):
+    if force_reload or collection_name not in existing_chroma_names:
         print(f"Building vector store for ID {retriever_id}...")
 
         try:
@@ -81,7 +82,6 @@ def vectorize(files: list[FileModel] | None = None,
 
             embedding_function = SentenceTransformerEmbeddingFunction()
 
-            chroma_client = get_chroma_client()
             chroma_collection = chroma_client.create_collection(collection_name, embedding_function=embedding_function)
 
             ids = [str(i) for i in range(len(token_split_texts))]

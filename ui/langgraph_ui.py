@@ -1,6 +1,7 @@
 """
 UI components for LangGraph RAG in the Streamlit application.
 """
+import json
 import os
 import streamlit as st
 from typing import Optional
@@ -142,8 +143,7 @@ class LangGraphUI:
             else:
                 with st.spinner("Building vector store from selected resources..."):
                     try:
-                        success = vectorize(
-                            selected_files, selected_links, force_reload=True)
+                        success = vectorize(selected_files, selected_links)
                         if success:
                             st.success(
                                 "Vector store initialized successfully!")
@@ -190,16 +190,21 @@ class LangGraphUI:
                     "answer": final_state["generation"],
                     "events": []
                 }
-                # result = run_rag_query(
-                #     prompt, selected_files, selected_links)
 
                 # Store in history
                 st.session_state.langgraph_history.append(result)
-                for item in st.session_state.langgraph_history:
-                    display_result(item, False)
+                display_result(result, False)
 
         # Option to clear history
-        if st.session_state.langgraph_history and st.button("Clear History"):
-            st.session_state.langgraph_history = []
-            st.rerun()
+        if st.session_state.langgraph_history:
+            st.download_button(
+                label="Download History",
+                key="rag_chat_history_download",
+                data=json.dumps(st.session_state.langgraph_history, indent=4),
+                file_name="rag_chat_history.json",
+                mime="application/json",
+            )
+            if st.button("Clear History"):
+                st.session_state.langgraph_history = []
+                st.rerun()
 

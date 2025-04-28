@@ -14,6 +14,8 @@ from config.config import CHROMA_PATH
 from modules.file.file_model import FileModel
 from modules.link.link_model import LinkModel
 
+EMPTY_RETRIEVER_ID = "default"
+
 # Check for environment variables
 def check_api_key():
     """Check if OpenAI API key is available"""
@@ -39,13 +41,16 @@ def get_retriever_id(files: list[FileModel], links: list[LinkModel]) -> str:
 
     # If no files or links, use "default"
     if not retriever_id:
-        retriever_id = "default"
+        retriever_id = EMPTY_RETRIEVER_ID
 
     return retriever_id
 
 def conventional_ai_retriever(query: str, files=None, links=None) -> list[str]:
     # Get collection name
     retriever_id = get_retriever_id(files or [], links or [])
+    if retriever_id == EMPTY_RETRIEVER_ID:
+        return []
+
     collection_name = f"rag-chroma-{retriever_id}"
 
     embedding_function = SentenceTransformerEmbeddingFunction()
@@ -57,6 +62,9 @@ def conventional_ai_retriever(query: str, files=None, links=None) -> list[str]:
 
 
 def rag_ai_retriever(queries: list[str], retriever_id: str) -> list[str]:
+    if retriever_id == EMPTY_RETRIEVER_ID:
+        return []
+
     # Get collection name
     collection_name = f"rag-chroma-{retriever_id}"
 

@@ -2,7 +2,6 @@
 UI components for link management in the Streamlit application.
 """
 import json
-import pandas as pd
 import streamlit as st
 from typing import Optional
 
@@ -94,7 +93,7 @@ class FeedbackUI:
                 "feedback.json",
                 "application/json",
                 key='download-json'
-                )
+            )
 
 
 
