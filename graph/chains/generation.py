@@ -4,8 +4,8 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 
 llm = ChatOpenAI(
-    model="gpt-4o",
-    temperature=0.2,  # Add some creativity while keeping responses focused
+    model="o4-mini",
+    # temperature=0.2,  # Add some creativity while keeping responses focused
     max_completion_tokens=10000   # Adjust based on your needs
 )
 
@@ -32,13 +32,13 @@ generation_prompt = ChatPromptTemplate.from_messages(
             Thought Process:
             - [Your step by step reasoning]
 
-            Final Answer:
+            Final Answer:\n\n
             [Your detailed answer based only on the provided information, along with the part number needed, AND the PART NUMBER IS A MUST WHATEVER PART MENTIONED IN THE ANSWER YOU NEED TO MENTION ITS PART NUMBER]
 
-            Brand name:
+            Brand name:\n\n
             [Name of the Brand of the Equipment and the type or the model]
 
-            Part Numbers:
+            Part Numbers:\n\n
             [Mention every part number for whatever parts you  mentioned in your answer or thoughts, if one of the parts does not have a part number mention it does not have and mention any data for that part which is available in the manual]
 
             """

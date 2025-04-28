@@ -59,6 +59,7 @@ class ConventionalUI:
         # File selection in the first column
         with col1:
             st.subheader("Select Files")
+            
 
             if self.file_service and current_user:
                 # Get user files
