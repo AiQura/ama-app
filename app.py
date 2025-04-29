@@ -74,8 +74,8 @@ def main():
     setup_environment_variables()
 
     # Main page title
-    st.title("AMA")
-    st.write("#### 'Artificial Maintenance Agent'")
+    st.title("AMMA")
+    st.write("#### 'Artificial Maintenance Management Agent'")
     st.write("""How to use the following APP:\n\n1- Upload files and links through section on the left.\n\n2- Click upload selected files and/or add link to save the files in the Database.\n\n3- In One AI and Agents AI select the files and/or links from the drop down.\n\n4- Click build index to vectorize the files and/or links to the vector database, this is mendatory to interact with the files and/or links.\n\n5- Ask questions to get answer from the document, same questions has to be asked in  one AI and Agent AI.\n\n6-you can use the source managment tab to delete the files you added.\n\n7- download the history using the button in each AI tab.\n\n8- fill the feedback in the feedback section and submit it.""")
 
     # Sidebar for user info, logout, file upload, and link management
@@ -86,7 +86,8 @@ def main():
 
         # File upload section
         st.header("Upload Files")
-        st.write("Upload the PDF files that you will ask about information in it, then click upload selected files button.")
+        st.write(
+            "Upload the PDF files that you will ask about information in it, then click upload selected files button.")
         if current_user:
             with st.form(key="file_upload_form"):
                 uploaded_files = st.file_uploader("Upload files", accept_multiple_files=True,
@@ -134,7 +135,8 @@ def main():
 
         # Show link management
         st.header("Add Links")
-        st.write("Add the website links that you will ask about information in it, then click add link button")
+        st.write(
+            "Add the website links that you will ask about information in it, then click add link button")
 
         link_ui.render_add_link_section(current_user)
 
