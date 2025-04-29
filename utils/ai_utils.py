@@ -10,8 +10,11 @@ from openai import OpenAI
 from sentence_transformers import CrossEncoder
 import streamlit as st
 
+from config.config import CHROMA_PATH
 from modules.file.file_model import FileModel
 from modules.link.link_model import LinkModel
+
+EMPTY_RETRIEVER_ID = "default"
 
 # Check for environment variables
 def check_api_key():
@@ -24,7 +27,7 @@ def get_ai_client():
 
 @st.cache_resource
 def get_chroma_client():
-    return chromadb.Client()
+    return chromadb.PersistentClient(path=CHROMA_PATH)
 
 def get_retriever_id(files: list[FileModel], links: list[LinkModel]) -> str:
     """Generate a unique ID for a set of files and links"""
@@ -38,13 +41,16 @@ def get_retriever_id(files: list[FileModel], links: list[LinkModel]) -> str:
 
     # If no files or links, use "default"
     if not retriever_id:
-        retriever_id = "default"
+        retriever_id = EMPTY_RETRIEVER_ID
 
     return retriever_id
 
 def conventional_ai_retriever(query: str, files=None, links=None) -> list[str]:
     # Get collection name
     retriever_id = get_retriever_id(files or [], links or [])
+    if retriever_id == EMPTY_RETRIEVER_ID:
+        return []
+
     collection_name = f"rag-chroma-{retriever_id}"
 
     embedding_function = SentenceTransformerEmbeddingFunction()
@@ -55,9 +61,11 @@ def conventional_ai_retriever(query: str, files=None, links=None) -> list[str]:
     return results['documents'][0]
 
 
-def rag_ai_retriever(queries: list[str], files=None, links=None) -> list[str]:
+def rag_ai_retriever(queries: list[str], retriever_id: str) -> list[str]:
+    if retriever_id == EMPTY_RETRIEVER_ID:
+        return []
+
     # Get collection name
-    retriever_id = get_retriever_id(files or [], links or [])
     collection_name = f"rag-chroma-{retriever_id}"
 
     embedding_function = SentenceTransformerEmbeddingFunction()
@@ -73,11 +81,10 @@ def rag_ai_retriever(queries: list[str], files=None, links=None) -> list[str]:
             unique_documents.add(document)
 
     unique_documents = list(unique_documents)
-    original_query = queries[0]
 
     pairs = []
     for doc in unique_documents:
-        pairs.append([queries[-1], doc])
+        pairs.append([queries[0], doc])
 
     cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
     scores = cross_encoder.predict(pairs)

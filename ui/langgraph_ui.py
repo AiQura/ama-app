@@ -1,15 +1,17 @@
 """
 UI components for LangGraph RAG in the Streamlit application.
 """
+import json
 import os
 import streamlit as st
 from typing import Optional
 
 from modules.auth.auth_service import User
-from prompts.rag_query import run_rag_query
 from modules.file.file_service import FileService
 from modules.link.link_service import LinkService
+from utils.ai_utils import get_retriever_id
 from utils.vectorizer import vectorize
+from graph.graph import get_graph
 
 
 class LangGraphUI:
@@ -141,8 +143,7 @@ class LangGraphUI:
             else:
                 with st.spinner("Building vector store from selected resources..."):
                     try:
-                        success = vectorize(
-                            selected_files, selected_links, force_reload=True)
+                        success = vectorize(selected_files, selected_links)
                         if success:
                             st.success(
                                 "Vector store initialized successfully!")
@@ -154,6 +155,7 @@ class LangGraphUI:
 
         # Query input
         st.subheader("Ask a Question")
+
         messages = st.container()
 
         def display_result(item, show_question=True):
@@ -179,15 +181,30 @@ class LangGraphUI:
 
             with st.spinner("Processing your query with LangGraph..."):
                 # Run the query through LangGraph, passing selected files and links
-                result = run_rag_query(
-                    prompt, selected_files, selected_links)
+                retriever_id = get_retriever_id(selected_files, selected_links)
+                inputs = {"question": prompt, "retriever_id": retriever_id}
+                app = get_graph()
+                final_state = app.invoke(inputs)
+                result = {
+                    "question": prompt,
+                    "answer": final_state["generation"],
+                    "events": []
+                }
 
                 # Store in history
                 st.session_state.langgraph_history.append(result)
-                for item in st.session_state.langgraph_history:
-                    display_result(item, False)
+                display_result(result, False)
 
         # Option to clear history
-        if st.session_state.langgraph_history and st.button("Clear History"):
-            st.session_state.langgraph_history = []
-            st.rerun()
+        if st.session_state.langgraph_history:
+            st.download_button(
+                label="Download History",
+                key="rag_chat_history_download",
+                data=json.dumps(st.session_state.langgraph_history, indent=4),
+                file_name="rag_chat_history.json",
+                mime="application/json",
+            )
+            if st.button("Clear History"):
+                st.session_state.langgraph_history = []
+                st.rerun()
+

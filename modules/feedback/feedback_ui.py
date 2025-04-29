@@ -2,7 +2,6 @@
 UI components for link management in the Streamlit application.
 """
 import json
-import pandas as pd
 import streamlit as st
 from typing import Optional
 
@@ -40,7 +39,6 @@ class FeedbackUI:
 
         return json.dumps(data, indent=4)
 
-
     def render_feedback_form(self, current_user: Optional[User] = None, is_admin: bool = False) -> None:
         """
         Render the feedback from interface.
@@ -49,6 +47,7 @@ class FeedbackUI:
             current_user: Currently authenticated user
         """
         st.header("Feedback")
+        st.write("You have used two different models One AI and Agents AI, please answer the following questions accordingly")
 
         if not current_user:
             st.warning("You must be logged in to give feedback.")
@@ -71,7 +70,6 @@ class FeedbackUI:
                     key=a.question.id
                 )
 
-
             feedback.comment = st.text_area(
                 "Please add your general feedback",
                 feedback.comment,
@@ -81,7 +79,8 @@ class FeedbackUI:
                 if not feedback.can_be_submitted():
                     st.error(f"Please answer all questions first.")
                 else:
-                    successful = self.feedback_service.upsert_user_answer(feedback)
+                    successful = self.feedback_service.upsert_user_answer(
+                        feedback)
                     if successful:
                         st.success("Feedback submitted successfully.")
                     else:
@@ -94,11 +93,4 @@ class FeedbackUI:
                 "feedback.json",
                 "application/json",
                 key='download-json'
-                )
-
-
-
-
-
-
-
+            )

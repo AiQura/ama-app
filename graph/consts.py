@@ -1,0 +1,5 @@
+RETRIEVE_AND_GRADE = "retrieve_and_grade"
+GENERATE = "generate"
+REFLECT="reflect"
+EXTRACT_SPARE_PARTS="extract_spare_parts"
+WEBSEARCH = "websearch"

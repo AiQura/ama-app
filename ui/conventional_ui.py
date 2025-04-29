@@ -2,6 +2,7 @@
 UI components for AI queries in the Streamlit application.
 """
 import os
+import json
 import streamlit as st
 from typing import Optional
 
@@ -59,6 +60,7 @@ class ConventionalUI:
         # File selection in the first column
         with col1:
             st.subheader("Select Files")
+
 
             if self.file_service and current_user:
                 # Get user files
@@ -126,8 +128,7 @@ class ConventionalUI:
             else:
                 with st.spinner("Building vector store from selected resources..."):
                     try:
-                        success = vectorize(
-                            selected_files, selected_links, force_reload=True)
+                        success = vectorize(selected_files, selected_links)
                         if success:
                             st.success(
                                 "Vector store initialized successfully!")
@@ -152,14 +153,14 @@ class ConventionalUI:
                     messages.chat_message("ai").write(event)
 
         if len(st.session_state.conventional_history) > 0:
-            for i, item in enumerate(st.session_state.conventional_history):
+            for item in st.session_state.conventional_history:
                 display_result(item)
 
         if prompt := st.chat_input("Ask a Question", key="chat_query"):
             messages.chat_message("user").write(prompt)
             if not selected_files and not selected_links:
                 messages.chat_message("AI").warning(
-                    "You haven't selected any files or links. LangGraph will use default sources or web search.")
+                    "You haven't selected any files or links. LangGraph will use default sources.")
 
             with st.spinner("Processing your query with LangGraph..."):
                 # Run the query through LangGraph, passing selected files and links
@@ -172,10 +173,18 @@ class ConventionalUI:
 
                 # Store in history
                 st.session_state.conventional_history.append(result)
-                for i, item in enumerate(st.session_state.conventional_history):
-                    display_result(item, False)
+                display_result(result, False)
 
         # Option to clear history
-        if st.session_state.conventional_history and st.button("Clear History", key="clear"):
-            st.session_state.conventional_history = []
-            st.rerun()
+        if st.session_state.conventional_history:
+            st.download_button(
+                label="Download History",
+                key="conventional_chat_history_download",
+                data=json.dumps(st.session_state.conventional_history, indent=4),
+                file_name="conventional_chat_history.json",
+                mime="application/json",
+            )
+
+            if st.button("Clear History", key="clear"):
+                st.session_state.conventional_history = []
+                st.rerun()

@@ -16,3 +16,5 @@ APP_LAYOUT = "wide"
 
 # AUTH Config
 SESSION_DURATION_IN_DAYS = 1
+
+CHROMA_PATH = os.path.join(BASE_DIR, ".chroma")
