@@ -32,3 +32,9 @@ langchain_openai
 langchain_core
 langchain_tavily
 sentence_transformers
+huggingface-hub>=0.16.4
+transformers
+faiss-cpu
+protobuf
+tokenizers
+accelerate

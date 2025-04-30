@@ -9,16 +9,11 @@ from modules.file.file_model import FileModel
 from modules.link.link_model import LinkModel
 from utils.ai_utils import check_api_key, get_retriever_id, get_chroma_client
 from utils.documents import get_documents_from_files, get_documents_from_links
-from langchain_openai import OpenAIEmbeddings
-
-from sentence_transformers import SentenceTransformer
- 
-# import chromadb.utils.embedding_functions as embedding_functions
 
 
 def vectorize(files: list[FileModel] | None = None,
-                        links: list[LinkModel] | None = None,
-                        force_reload: bool = False) -> bool:
+                         links: list[LinkModel] | None = None,
+                         force_reload: bool = False) -> bool:
     """
     Initialize or load the vector store for retrieval based on provided files and links
 
@@ -77,6 +72,7 @@ def vectorize(files: list[FileModel] | None = None,
             character_split_texts = character_splitter.split_text(
                 '\n\n'.join(str_documents))
 
+
             token_splitter = SentenceTransformersTokenTextSplitter(
                 chunk_overlap=0, tokens_per_chunk=256)
 
@@ -84,23 +80,9 @@ def vectorize(files: list[FileModel] | None = None,
             for text in character_split_texts:
                 token_split_texts += token_splitter.split_text(text)
 
-            # embedding_function = SentenceTransformerEmbeddingFunction()
-            
-            embedding_function = SentenceTransformer("all-MiniLM-L6-v2")
-            # embedding_function = model.encode()
-            
-            
-            # embedding_function = embedding_functions.OpenAIEmbeddingFunction(
-            #     api_key=st.secrets["OPENAI_API_KEY"]
-                
-            #     ),
-            
-            # embedding_function=OpenAIEmbeddings()
+            embedding_function = SentenceTransformerEmbeddingFunction()
 
-            chroma_collection = chroma_client.create_collection(
-                collection_name,
-                # embedding_function=embedding_function
-                )
+            chroma_collection = chroma_client.create_collection(collection_name, embedding_function=embedding_function)
 
             ids = [str(i) for i in range(len(token_split_texts))]
 
