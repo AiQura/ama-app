@@ -52,6 +52,9 @@ class ConventionalUI:
             st.session_state.conventional_history = []
 
         # Create two columns for file and link selection
+        st.write(
+            "#### This tab simulates standard responses you would receive from a GPT-4o OpenAI model.")
+
         col1, col2 = st.columns(2)
 
         selected_files = []
@@ -60,7 +63,6 @@ class ConventionalUI:
         # File selection in the first column
         with col1:
             st.subheader("Select Files")
-
 
             if self.file_service and current_user:
                 # Get user files
@@ -180,7 +182,8 @@ class ConventionalUI:
             st.download_button(
                 label="Download History",
                 key="conventional_chat_history_download",
-                data=json.dumps(st.session_state.conventional_history, indent=4),
+                data=json.dumps(
+                    st.session_state.conventional_history, indent=4),
                 file_name="conventional_chat_history.json",
                 mime="application/json",
             )

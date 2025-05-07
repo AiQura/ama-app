@@ -75,8 +75,24 @@ def main():
 
     # Main page title
     st.title("AMA")
-    st.write("#### 'Artificial Maintenance Agent'")
-    st.write("""How to use the following APP:\n\n1- Upload files and links through section on the left.\n\n2- Click upload selected files and/or add link to save the files in the Database.\n\n3- In One AI and Agents AI select the files and/or links from the drop down.\n\n4- Click build index to vectorize the files and/or links to the vector database, this is mendatory to interact with the files and/or links.\n\n5- Ask questions to get answer from the document, same questions has to be asked in  one AI and Agent AI.\n\n6-you can use the source managment tab to delete the files you added.\n\n7- download the history using the button in each AI tab.\n\n8- fill the feedback in the feedback section and submit it.""")
+    st.write("### Artificial Maintenance Agent")
+    st.write("""#### How to Use This Application
+
+1. **Upload Content** - Add files and links through the sidebar panel on the left handside.
+
+2. **Save Your Content** - Click "Upload Selected Files" or "Add Link" to save content to the database.
+
+3. **Select Sources** - In both "One AI" and "Agents AI" tabs, select your files and/or links from the dropdown menu.
+
+4. **Build Index** - Click "Build Index" to vectorize your content. This step is mandatory before interacting with your files or links.
+
+5. **Ask Questions** - Enter your questions to receive answers from your documents. You can compare responses by asking the same question in both AI interfaces.
+
+6. **Manage Sources** - Use the "Source Management" tab to view or delete your uploaded content if needed.
+
+7. **Download History** - Export your conversation history using the download button in each AI tab.
+
+8. **Provide Feedback** - Share your experience in the "Feedback" section, which is mandatory after using the application.""")
 
     # Sidebar for user info, logout, file upload, and link management
     with st.sidebar:
@@ -87,11 +103,11 @@ def main():
         # File upload section
         st.header("Upload Files")
         st.write(
-            "Upload the PDF files that you will ask about information in it, then click upload selected files button.")
+            "Upload PDF files containing information you'd like to query, then click the 'Upload Selected Files' button.")
         if current_user:
             with st.form(key="file_upload_form"):
-                uploaded_files = st.file_uploader("Upload files", accept_multiple_files=True,
-                                                  help="First upload files here, then use 'Submit' to process them")
+                uploaded_files = st.file_uploader("Select files", accept_multiple_files=True,
+                                                  help="First select your files, then click 'Upload Selected Files' to process them")
                 replace_existing = st.checkbox(
                     "Replace existing files", value=False)
                 submit_button = st.form_submit_button("Upload Selected Files")
@@ -136,7 +152,7 @@ def main():
         # Show link management
         st.header("Add Links")
         st.write(
-            "Add the website links that you will ask about information in it, then click add link button")
+            "Add website URLs containing information you'd like to query, then click the 'Add Link' button.")
 
         link_ui.render_add_link_section(current_user)
 

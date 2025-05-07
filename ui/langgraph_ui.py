@@ -37,7 +37,6 @@ class LangGraphUI:
         Args:
             current_user: Currently authenticated user
         """
-        st.header("Advanced RAG with LangGraph")
 
         if not current_user:
             st.warning("You must be logged in to use LangGraph RAG.")
@@ -51,17 +50,19 @@ class LangGraphUI:
 
         # Intro text explaining what LangGraph RAG is
         st.markdown("""
-        This is an implementation of an Adaptive RAG system using LangGraph.
-        The system can:
+        ### Advanced Multi-Agent System with LangGraph
+        
+        This tab leverages an Adaptive RAG architecture that intelligently:
 
-        1. Route queries to either vector search or web search
-        2. Evaluate the quality of retrieved documents
-        3. Generate grounded responses
-        4. Check for hallucinations
-        5. Ensure the answer addresses the original question
+        1. **Routes Queries** - Uses an Agentic workflow to deliver precise answers.
+        2. **Validates Information** - Evaluates retrieved documents against the original query for relevance and quality.
+        3. **Generates Grounded Responses** - Creates answers based on verified information sources.
+        4. **Prevents Hallucinations** - Implements a reflecting agent to ensure response accuracy.
+        5. **Ensures Relevance** - Verifies that responses directly address your original question.
+        6. **Web Search** - Searches the web for relevant websites if needed to check related spare parts or brands.
 
-        Select which files and links to include in the vector database, or use web search
-        for topics outside your documents.
+
+        Select specific files and links to include in your vector database.
         """)
 
         # Initialize session state for tracking run history
@@ -207,4 +208,3 @@ class LangGraphUI:
             if st.button("Clear History"):
                 st.session_state.langgraph_history = []
                 st.rerun()
-
