@@ -1,17 +1,19 @@
-Streamlit AMA
+# 🤖 AMA App (Ask Me Anything) 🦾
 
+A Streamlit-powered application that allows users to upload files, add external links, and ask questions to receive AI-powered responses with transparent reasoning.
 
-A Streamlit application that allows users to upload files, add links, and receive AI-powered responses with transparent reasoning.
-Features
+## ✨ Features
 
-File Management: Upload, view, and delete files with persistent storage
-Link Management: Add, view, and delete external links
-AI Queries: Ask questions and see the reasoning process behind the answers
-Persistent Storage: All data is saved and available across sessions
-Transparent AI: See how the AI reaches its conclusions step by step
+- **File Management**: 📁 Upload, view, and delete files with persistent storage
+- **Link Management**: 🔗 Add, view, and delete external links for reference
+- **AI Queries**: 🧠 Ask questions about your content and see the reasoning process behind the answers
+- **Persistent Storage**: 💾 All data is saved and available across sessions
+- **Transparent AI**: 🔍 See how the AI reaches its conclusions step by step
 
-Project Structure
-Copystreamlit_ai_app/
+## 🗂️ Project Structure
+
+```
+streamlit_ai_app/
 │
 ├── app.py                  # Main entry point for the application
 ├── requirements.txt        # Project dependencies
@@ -49,53 +51,69 @@ Copystreamlit_ai_app/
     ├── test_ai_service.py
     ├── test_file_service.py
     └── test_link_service.py
-Installation
+```
 
-Clone the repository:
+## 🚀 Installation
 
-bashCopygit clone https://github.com/yourusername/streamlit-ai-app.git
-cd streamlit-ai-app
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/AiQura/ama-app.git
+   cd ama-app
+   ```
 
-Install dependencies:
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-bashCopypip install -r requirements.txt
+3. Run the application:
+   ```bash
+   streamlit run app.py
+   ```
 
-Run the application:
+## 📘 How to Use
 
-bashCopystreamlit run app.py
-How to Use
+### 📁 Uploading Files
+- Use the sidebar to upload files
+- Files are saved to disk and can be viewed in the "Manage Files" tab
 
-Uploading Files:
+### 🔗 Adding Links
+- Add external URLs from the sidebar
+- Links are saved and can be viewed in the "Manage Links" tab
 
-Use the sidebar to upload files
-Files are saved to disk and can be viewed in the "Manage Files" tab
+### 🧠 Asking Questions
+- Go to the "Ask AI" tab
+- Enter your query in the text area
+- Select relevant files and links to include in your query
+- Submit your query and view the AI's reasoning process and response
 
+### 🔄 Managing Resources
+- Use the "Manage Files" and "Manage Links" tabs to view and delete resources
 
-Adding Links:
+## ⚙️ Implementation Notes
 
-Add external URLs from the sidebar
-Links are saved and can be viewed in the "Manage Links" tab
+- The application uses Streamlit for building the user interface
+- All data is stored locally in JSON files and uploaded files are saved to the `uploaded_files` directory
+- The AI reasoning process can be customized to integrate with various AI APIs
+- The project is structured to be modular and extensible
 
+## 🛠️ Contributing
 
-Asking Questions:
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-Go to the "Ask AI" tab
-Enter your query in the text area
-Select relevant files and links to include in your query
-Submit your query and view the AI's reasoning process and response
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
+## 🔐 License
 
-Managing Resources:
+This project is PRIVATE USE ONLY. No part of this application may be reproduced, distributed, or used by third parties. All rights reserved.
 
-Use the "Manage Files" and "Manage Links" tabs to view and delete resources
+This software is provided for personal and internal use only. No license is granted for commercial or public use of this software. Any unauthorized use, reproduction, or distribution is strictly prohibited.
 
+## 🙏 Acknowledgments
 
-
-Implementation Notes
-
-The AI reasoning is currently simulated for demonstration purposes
-In a production environment, you would replace the query_ai method in AIService with calls to an actual AI API
-All data is stored locally in JSON files and uploaded files are saved to the uploaded_files directory
-
-License
-MIT
+- This application was built using [Streamlit](https://streamlit.io/)
+- Architecture follows a modular design pattern for easier maintenance and extension
