@@ -1,4 +1,4 @@
-# 🤖 AMA App (Ask Me Anything) 🦾
+# 🤖 AMA App (Ask Me Anything In Maintenance) 🦾
 
 A Streamlit-powered application that allows users to upload files, add external links, and ask questions to receive AI-powered responses with transparent reasoning.
 
@@ -9,6 +9,7 @@ A Streamlit-powered application that allows users to upload files, add external 
 - **AI Queries**: 🧠 Ask questions about your content and see the reasoning process behind the answers
 - **Persistent Storage**: 💾 All data is saved and available across sessions
 - **Transparent AI**: 🔍 See how the AI reaches its conclusions step by step
+- **Web Search**: 🤖 Perform autonomous web search on related spare parts for the related equipment
 
 ## 🗂️ Project Structure
 
