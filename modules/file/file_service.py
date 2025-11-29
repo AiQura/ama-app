@@ -10,8 +10,9 @@ from datetime import datetime
 
 from modules.file.file_model import FileModel
 from config.config import UPLOAD_DIR
-from utils.db_conenciton import db_conenciton, get_supabase_client
+from utils.db_conneciton import db_conneciton, get_supabase_client
 from modules.file.file_utils import delete_file
+
 
 class FileService:
     """
@@ -30,7 +31,7 @@ class FileService:
 
     def _initialize_db(self) -> None:
         """Initialize the database tables for file storage."""
-        with db_conenciton() as cursor:
+        with db_conneciton() as cursor:
             # Create files table
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS files (
@@ -47,7 +48,7 @@ class FileService:
             cursor.execute('ALTER TABLE files ENABLE ROW LEVEL SECURITY;')
 
     def add_file(self, file: Union[BinaryIO, bytes, bytearray, memoryview],
-                filename: str, file_type: str = "", user_id: str = "") -> Optional[FileModel]:
+                 filename: str, file_type: str = "", user_id: str = "") -> Optional[FileModel]:
         """
         Add a new file to the system.
 
@@ -65,7 +66,8 @@ class FileService:
             file_id = str(uuid.uuid4())
 
             # Create user-specific directory
-            user_upload_dir = os.path.join(UPLOAD_DIR, user_id) if user_id else UPLOAD_DIR
+            user_upload_dir = os.path.join(
+                UPLOAD_DIR, user_id) if user_id else UPLOAD_DIR
             os.makedirs(user_upload_dir, exist_ok=True)
 
             file_name = f"{file_id}_{filename}"
@@ -88,7 +90,8 @@ class FileService:
             self.bucket.upload(
                 file=pathlib.Path(file_path),
                 path=file_relative_path,
-                file_options={"cache-control": "86400", "upsert": "false"} # 86400 is 1 day
+                file_options={"cache-control": "86400",
+                              "upsert": "false"}  # 86400 is 1 day
             )
 
             # Get file size
@@ -109,7 +112,7 @@ class FileService:
             )
 
             # Save to database
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 cursor.execute(
                     """
                     INSERT INTO files
@@ -156,13 +159,13 @@ class FileService:
         if os.path.isfile(absolute_path):
             return absolute_path
 
-        os.makedirs(os.path.join(UPLOAD_DIR, file_path.split('/')[0]), exist_ok=True)
+        os.makedirs(os.path.join(
+            UPLOAD_DIR, file_path.split('/')[0]), exist_ok=True)
 
         with open(absolute_path, "wb+") as f:
             f.write(self.bucket.download(file_path))
 
         return absolute_path
-
 
     def get_file(self, file_id: str) -> Optional[FileModel]:
         """
@@ -175,7 +178,7 @@ class FileService:
             Optional[FileModel]: The file model or None if not found
         """
         try:
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 cursor.execute(
                     """
                     SELECT file_id, user_id, name, path, size, type, uploaded_at
@@ -217,7 +220,7 @@ class FileService:
             List[FileModel]: List of file models
         """
         try:
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 cursor.execute(
                     """
                     SELECT file_id, user_id, name, path, size, type, uploaded_at
@@ -264,7 +267,7 @@ class FileService:
             List[FileModel]: List of all file models
         """
         try:
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 cursor.execute(
                     """
                     SELECT file_id, user_id, name, path, size, type, uploaded_at
@@ -326,8 +329,9 @@ class FileService:
             self.bucket.remove([self._relative_from_absolute_path(file.path)])
 
             # Delete from database
-            with db_conenciton() as cursor:
-                cursor.execute("DELETE FROM files WHERE file_id = %s", (file_id,))
+            with db_conneciton() as cursor:
+                cursor.execute(
+                    "DELETE FROM files WHERE file_id = %s", (file_id,))
 
             return True
         except Exception as e:
@@ -354,12 +358,13 @@ class FileService:
                 if os.path.exists(file.path):
                     delete_file(file.path)
                 # Delete from bucket
-                self.bucket.remove([self._relative_from_absolute_path(file.path)])
-
+                self.bucket.remove(
+                    [self._relative_from_absolute_path(file.path)])
 
             # Delete from database
-            with db_conenciton() as cursor:
-                cursor.execute("DELETE FROM files WHERE user_id = %s", (user_id,))
+            with db_conneciton() as cursor:
+                cursor.execute(
+                    "DELETE FROM files WHERE user_id = %s", (user_id,))
 
             return True
         except Exception as e:

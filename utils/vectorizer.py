@@ -3,7 +3,7 @@ import streamlit as st
 
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 
-from langchain.text_splitter import RecursiveCharacterTextSplitter, SentenceTransformersTokenTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter, SentenceTransformersTokenTextSplitter
 
 from modules.file.file_model import FileModel
 from modules.link.link_model import LinkModel

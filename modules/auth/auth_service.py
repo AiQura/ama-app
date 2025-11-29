@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import streamlit as st
 
 from config.config import SESSION_DURATION_IN_DAYS
-from utils.db_conenciton import db_conenciton
+from utils.db_conneciton import db_conneciton
 
 
 @dataclass
@@ -42,7 +42,7 @@ class AuthService:
     def _initialize_db(self) -> None:
         """Initialize the SQLite database for authentication."""
         # Connect to the database
-        with db_conenciton() as cursor:
+        with db_conneciton() as cursor:
             # Create users table
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
@@ -76,8 +76,9 @@ class AuthService:
             name = user_data.get('name', '')
 
             # Check if user already exists
-            with db_conenciton() as cursor:
-                cursor.execute("SELECT email FROM users WHERE email = %s", (email,))
+            with db_conneciton() as cursor:
+                cursor.execute(
+                    "SELECT email FROM users WHERE email = %s", (email,))
                 exists = cursor.fetchone()
 
             if not exists:
@@ -119,7 +120,7 @@ class AuthService:
             password_hash = self._hash_password(password)
             created_at = datetime.now().isoformat()
 
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 # Insert user into database
                 cursor.execute(
                     "INSERT INTO users (user_id, email, password_hash, name, created_at) VALUES (%s, %s, %s, %s, %s)",
@@ -148,7 +149,7 @@ class AuthService:
         try:
             password_hash = self._hash_password(password)
 
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 # Find user with matching email and password
                 cursor.execute(
                     "SELECT user_id, email, name FROM users WHERE email = %s AND password_hash = %s",
@@ -179,9 +180,10 @@ class AuthService:
         try:
             session_id = str(uuid.uuid4())
             created_at = datetime.now().isoformat()
-            expires_at = (datetime.now() + timedelta(days=SESSION_DURATION_IN_DAYS)).isoformat()
+            expires_at = (datetime.now() +
+                          timedelta(days=SESSION_DURATION_IN_DAYS)).isoformat()
 
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 # Insert session into database
                 cursor.execute(
                     "INSERT INTO sessions (session_id, user_id, created_at, expires_at) VALUES (%s, %s, %s, %s)",
@@ -204,7 +206,7 @@ class AuthService:
             Optional[User]: The user associated with the session or None if invalid
         """
         try:
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 # Find session and check if it's expired
                 cursor.execute(
                     """
@@ -238,7 +240,7 @@ class AuthService:
             bool: True if successful, False otherwise
         """
         try:
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 # Delete session from database
                 cursor.execute(
                     "DELETE FROM sessions WHERE session_id = %s", (session_id,))
@@ -259,7 +261,7 @@ class AuthService:
             bool: True if successful, False otherwise
         """
         try:
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 # Delete session from database
                 cursor.execute(
                     "DELETE FROM sessions WHERE expires_at < %s", (datetime.now().isoformat(),))
@@ -280,7 +282,7 @@ class AuthService:
             Optional[User]: The user or None if not found
         """
         try:
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 # Find user by ID
                 cursor.execute(
                     "SELECT user_id, email, name FROM users WHERE user_id = %s",
@@ -309,7 +311,7 @@ class AuthService:
             Optional[User]: The user or None if not found
         """
         try:
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 # Find user by email
                 cursor.execute(
                     "SELECT user_id, email, name FROM users WHERE email = %s",
@@ -335,7 +337,7 @@ class AuthService:
             list[User]: List of all users
         """
         try:
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 # Find user by ID
                 cursor.execute(
                     "SELECT user_id, email, name FROM users"

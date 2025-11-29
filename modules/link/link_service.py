@@ -6,7 +6,7 @@ from typing import List, Optional
 from datetime import datetime
 
 from modules.link.link_model import LinkModel
-from utils.db_conenciton import db_conenciton
+from utils.db_conneciton import db_conneciton
 
 
 class LinkService:
@@ -20,8 +20,8 @@ class LinkService:
 
     def _initialize_db(self) -> None:
         """Initialize the database tables for link storage."""
-        with db_conenciton() as cursor:
-        # Create links table
+        with db_conneciton() as cursor:
+            # Create links table
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS links (
                 link_id TEXT PRIMARY KEY,
@@ -33,7 +33,6 @@ class LinkService:
             )
             ''')
             cursor.execute('ALTER TABLE links ENABLE ROW LEVEL SECURITY;')
-
 
     def add_link(self, url: str, description: str = "", user_id: str = "") -> Optional[LinkModel]:
         """
@@ -65,7 +64,7 @@ class LinkService:
                 return None
 
             # Add to database
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 cursor.execute(
                     """
                     INSERT INTO links
@@ -91,7 +90,7 @@ class LinkService:
             Optional[LinkModel]: The link model or None if not found
         """
         try:
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 cursor.execute(
                     """
                     SELECT link_id, user_id, url, description, added_at
@@ -129,7 +128,7 @@ class LinkService:
             List[LinkModel]: List of link models
         """
         try:
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 cursor.execute(
                     """
                     SELECT link_id, user_id, url, description, added_at
@@ -167,7 +166,7 @@ class LinkService:
             List[LinkModel]: List of all link models
         """
         try:
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 cursor.execute(
                     """
                     SELECT link_id, user_id, url, description, added_at
@@ -206,8 +205,9 @@ class LinkService:
             bool: True if successful, False otherwise
         """
         try:
-            with db_conenciton() as cursor:
-                cursor.execute("DELETE FROM links WHERE link_id = %s", (link_id,))
+            with db_conneciton() as cursor:
+                cursor.execute(
+                    "DELETE FROM links WHERE link_id = %s", (link_id,))
 
             return True
         except Exception as e:
@@ -225,8 +225,9 @@ class LinkService:
             bool: True if successful, False otherwise
         """
         try:
-            with db_conenciton() as cursor:
-                cursor.execute("DELETE FROM links WHERE user_id = %s", (user_id,))
+            with db_conneciton() as cursor:
+                cursor.execute(
+                    "DELETE FROM links WHERE user_id = %s", (user_id,))
 
             return True
         except Exception as e:
@@ -234,7 +235,7 @@ class LinkService:
             return False
 
     def update_link(self, link_id: str, url: Optional[str] = None,
-                   description: Optional[str] = None) -> Optional[LinkModel]:
+                    description: Optional[str] = None) -> Optional[LinkModel]:
         """
         Update a link.
 
@@ -265,7 +266,7 @@ class LinkService:
                 return None
 
             # Update in database
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 cursor.execute(
                     """
                     UPDATE links

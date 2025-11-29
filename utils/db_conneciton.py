@@ -8,9 +8,11 @@ import psycopg2
 import streamlit as st
 from supabase import create_client, Client
 
+
 @st.cache_resource
 def get_supabase_client() -> Client:
     return create_client(st.secrets.supabase["SUPABASE_URL"], st.secrets.supabase["SUPABASE_KEY"])
+
 
 @st.cache_resource
 def get_db_connection():
@@ -22,8 +24,9 @@ def get_db_connection():
         port=st.secrets.db["DB_PORT"]
     )
 
+
 @contextmanager
-def db_conenciton():
+def db_conneciton():
     conn = get_db_connection()
     cursor = conn.cursor()
 

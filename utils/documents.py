@@ -1,6 +1,6 @@
 
 import os
-from langchain.schema import Document
+from langchain_core.documents import Document
 from langchain_community.document_loaders import WebBaseLoader, PyPDFLoader, TextLoader, CSVLoader
 
 from modules.file.file_model import FileModel

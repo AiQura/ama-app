@@ -7,7 +7,7 @@ from datetime import datetime
 import streamlit as st
 
 from modules.feedback.feedback_model import FeedbackModel, FeedbackQuestionModel, FeedbackUserAnswerModel
-from utils.db_conenciton import db_conenciton
+from utils.db_conneciton import db_conneciton
 
 
 class FeedbackService:
@@ -22,8 +22,8 @@ class FeedbackService:
 
     def _initialize_db(self) -> None:
         """Initialize the database tables for link storage."""
-        with db_conenciton() as cursor:
-        # Create tables
+        with db_conneciton() as cursor:
+            # Create tables
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS questions (
                 question_id TEXT PRIMARY KEY,
@@ -32,7 +32,6 @@ class FeedbackService:
             )
             ''')
             cursor.execute('ALTER TABLE questions ENABLE ROW LEVEL SECURITY;')
-
 
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS answers (
@@ -54,8 +53,9 @@ class FeedbackService:
             answers = user_data['answers']
 
             # Check if user already exists
-            with db_conenciton() as cursor:
-                cursor.execute("SELECT question FROM questions WHERE question = %s", (question,))
+            with db_conneciton() as cursor:
+                cursor.execute(
+                    "SELECT question FROM questions WHERE question = %s", (question,))
                 exists = cursor.fetchone()
 
             if not exists:
@@ -70,7 +70,7 @@ class FeedbackService:
             List[FeedbackQuestionModel]: List of all question models
         """
         try:
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 cursor.execute(
                     """
                     SELECT question_id, question, answers
@@ -106,14 +106,14 @@ class FeedbackService:
             bool: True if successful, False otherwise
         """
         try:
-            with db_conenciton() as cursor:
-                cursor.execute("DELETE FROM questions WHERE question_id = %s", (question_id,))
+            with db_conneciton() as cursor:
+                cursor.execute(
+                    "DELETE FROM questions WHERE question_id = %s", (question_id,))
 
             return True
         except Exception as e:
             print(f"Error deleting link: {e}")
             return False
-
 
     def create_question(self, question: str, answers: list[str]) -> FeedbackQuestionModel:
         """
@@ -137,7 +137,7 @@ class FeedbackService:
             )
 
             # Add to database
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 cursor.execute(
                     """
                     INSERT INTO questions
@@ -164,7 +164,7 @@ class FeedbackService:
         """
         questions = self.get_all_questions()
         try:
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 cursor.execute(
                     """
                     SELECT answer_id, user_id, answers, comment, created_at
@@ -185,7 +185,8 @@ class FeedbackService:
                     user_id=user_id,
                     comment=comment,
                     created_at=created_at,
-                    answers=[FeedbackUserAnswerModel(question=question, answer=answers[question.id]['answer'], comment=answers[question.id]['comment']) for question in questions]
+                    answers=[FeedbackUserAnswerModel(question=question, answer=answers[question.id]
+                                                     ['answer'], comment=answers[question.id]['comment']) for question in questions]
                 )
             else:
                 return FeedbackModel(
@@ -193,7 +194,8 @@ class FeedbackService:
                     user_id=user_id,
                     comment="",
                     created_at=None,
-                    answers=[FeedbackUserAnswerModel(question=question, answer="", comment="") for question in questions]
+                    answers=[FeedbackUserAnswerModel(
+                        question=question, answer="", comment="") for question in questions]
                 )
         except Exception as e:
             print(f"Error getting user feedback: {e}")
@@ -202,12 +204,13 @@ class FeedbackService:
                 user_id=user_id,
                 comment="",
                 created_at=None,
-                answers=[FeedbackUserAnswerModel(question=question, answer="", comment="") for question in questions]
+                answers=[FeedbackUserAnswerModel(
+                    question=question, answer="", comment="") for question in questions]
             )
 
     def answer_exists(self, answer_id: str) -> bool:
         try:
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 # Find session and check if it's expired
                 cursor.execute(
                     """
@@ -228,7 +231,6 @@ class FeedbackService:
             print(f"Error fetching answer: {e}")
             return None
 
-
     def upsert_user_answer(self, feedback: FeedbackModel) -> bool:
         answer_exists = self.answer_exists(feedback.id)
 
@@ -242,7 +244,7 @@ class FeedbackService:
             }
 
         try:
-            with db_conenciton() as cursor:
+            with db_conneciton() as cursor:
                 if answer_exists:
                     # Update record
                     cursor.execute(
@@ -254,18 +256,17 @@ class FeedbackService:
                             created_at = %s
                         WHERE answer_id = %s
                         """,
-                        (feedback.user_id, json.dumps(answers), feedback.comment, feedback.created_at, feedback.id)
+                        (feedback.user_id, json.dumps(answers),
+                         feedback.comment, feedback.created_at, feedback.id)
                     )
                 else:
                     # Insert record
                     cursor.execute(
                         "INSERT INTO answers (answer_id, user_id, answers, comment, created_at) VALUES (%s, %s, %s, %s, %s)",
-                        (feedback.id, feedback.user_id, json.dumps(answers), feedback.comment, feedback.created_at)
+                        (feedback.id, feedback.user_id, json.dumps(
+                            answers), feedback.comment, feedback.created_at)
                     )
             return True
         except Exception as e:
             print(f"Error upserting answer: {e}")
             return False
-
-
-
